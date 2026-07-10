@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#073b63">
+<title>Portal Equipe E - Piloto</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--azul:#073b63;--azul2:#0d65a8;--verde:#15803d;--amarelo:#d97706;--vermelho:#b91c1c;--bg:#eef3f8;--card:#fff;--borda:#d7e1ea;--txt:#17212f;--muted:#667085}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:Segoe UI,Arial,sans-serif}.top{background:linear-gradient(135deg,var(--azul),var(--azul2));color:white;padding:18px 24px;display:flex;justify-content:space-between;gap:20px;align-items:center}.top h1{margin:0;font-size:24px}.top p{margin:4px 0 0;font-size:13px;opacity:.92}.brand{text-align:right;font-size:13px}.wrap{padding:18px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab{border:0;border-radius:10px;padding:10px 13px;background:white;color:var(--azul);font-weight:800;cursor:pointer;box-shadow:0 1px 5px #0001}.tab.active{background:var(--azul);color:#fff}.view{display:none}.view.active{display:block}.grid{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:14px}.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.card{background:var(--card);border:1px solid var(--borda);border-radius:15px;padding:16px;box-shadow:0 2px 9px #0000000b}h2{margin:0 0 14px;color:var(--azul)}h3{margin:0 0 10px;color:var(--azul)}.kpi .num{font-size:30px;font-weight:900;color:var(--azul)}.kpi .lbl{font-size:13px;color:var(--muted)}table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden}th,td{padding:9px 8px;border-bottom:1px solid #e6edf3;text-align:left;font-size:14px}th{background:#deebf6;color:#102a43}tr:hover{background:#f8fbfd}.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}.ok{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.crit{background:#fee2e2;color:#991b1b}.info{background:#dbeafe;color:#1e40af}.gray{background:#f1f5f9;color:#475569}.btn{border:0;border-radius:9px;padding:9px 12px;background:var(--azul);color:white;font-weight:800;cursor:pointer}.btn.green{background:var(--verde)}.btn.yellow{background:var(--amarelo)}.btn.red{background:var(--vermelho)}.btn.secondary{background:#64748b}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}label{font-size:12px;color:#52606d;font-weight:800}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:9px;font:inherit;background:white}.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.formgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.muted{color:var(--muted)}.small{font-size:12px}.monthgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.month{background:white;border:1px solid var(--borda);border-radius:13px;padding:12px;min-height:120px}.month h4{margin:0 0 8px;color:var(--azul)}.event{border-left:5px solid var(--azul2);background:#eff8ff;padding:7px;margin:6px 0;border-radius:8px;font-size:13px}.request{border-left:5px solid var(--amarelo);background:#fff7ed;padding:8px;margin:7px 0;border-radius:9px}.request.okb{border-left-color:var(--verde);background:#f0fdf4}.request.critb{border-left-color:var(--vermelho);background:#fef2f2}.bar{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--azul2),#43a047)}.profile{display:grid;grid-template-columns:260px 1fr;gap:14px}.avatar{width:58px;height:58px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--azul)}.printbar{position:fixed;right:18px;bottom:18px}.pillrow{display:flex;gap:6px;flex-wrap:wrap}.sep{height:1px;background:#e5e7eb;margin:12px 0}.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#073b63,#0d65a8)}.loginbox{max-width:850px;width:100%;background:white;border-radius:22px;padding:28px;box-shadow:0 18px 40px #0004}.loginbox h1{color:var(--azul);margin:0 0 8px}.logingrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}.logincard{border:1px solid var(--borda);border-radius:16px;padding:18px;background:#f8fbfd}.senha{margin-top:10px}.rolebar{background:#eaf2fa;border-bottom:1px solid var(--borda);padding:8px 18px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--azul);font-weight:800}.app{display:none}.hide{display:none!important}@media(max-width:980px){.grid,.monthgrid,.formgrid,.logingrid{grid-template-columns:1fr 1fr}.grid2,.profile{grid-template-columns:1fr}.formgrid3{grid-template-columns:1fr}}@media(max-width:620px){.grid,.monthgrid,.formgrid,.logingrid{grid-template-columns:1fr}.top{display:block}.brand{text-align:left;margin-top:10px}}
+/* Fase 1 - Otimização para celular */
+.mobile-hint{display:none}.quick-mobile{display:none}
+@media(max-width:760px){
+ body{font-size:16px;padding-bottom:86px;background:#f4f7fb}
+ .login{align-items:flex-start;padding:14px;min-height:100dvh}.loginbox{padding:18px;border-radius:18px}.loginbox h1{font-size:22px}.logincard{padding:14px}.logincard h3{font-size:18px}
+ .top{padding:14px 16px;border-radius:0 0 18px 18px}.top h1{font-size:19px;line-height:1.2}.top p{font-size:12px}.brand{display:none}
+ .rolebar{position:sticky;top:0;z-index:8;padding:8px 12px;background:#ffffffcc;backdrop-filter:blur(8px)}
+ .wrap{padding:12px}.card{padding:13px;border-radius:14px}h2{font-size:20px}h3{font-size:17px}.kpi .num{font-size:25px}
+ .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;margin:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:#ffffffee;border-top:1px solid var(--borda);box-shadow:0 -6px 18px #0001;display:flex;overflow-x:auto;flex-wrap:nowrap;gap:6px}.tab{flex:0 0 auto;min-width:112px;padding:11px 10px;font-size:13px;border-radius:12px;box-shadow:none}.tab.active{background:var(--azul2)}
+ .btn{width:100%;padding:12px 13px;border-radius:12px;font-size:15px}.actions{display:grid;grid-template-columns:1fr;gap:8px}.formgrid,.formgrid3,.grid2,.profile,.grid,.monthgrid,.logingrid{grid-template-columns:1fr!important;gap:10px}input,select,textarea{min-height:44px;font-size:16px;border-radius:12px}.quick-mobile{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}.quick-mobile .btn{font-size:13px;padding:10px}.mobile-hint{display:block;background:#eaf2fa;border:1px solid var(--borda);border-radius:14px;padding:10px;margin:0 0 12px;color:var(--azul);font-size:13px}
+ table,thead,tbody,tr,th,td{display:block;width:100%}tr{border:1px solid #e6edf3;border-radius:12px;margin:9px 0;background:white;overflow:hidden}th{display:none}td{border-bottom:1px solid #eef2f6;padding:8px 10px}td:last-child{border-bottom:0}td:before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:2px}.tbl-desktop-label td:before{display:block}
+ .month{min-height:auto}.printbar{display:none}.pillrow .badge{width:100%;text-align:center}.bar{height:12px}
+}
+
+@media print{.top,.tabs,.actions,.printbar,.no-print,input,select,textarea,button{display:none!important}.wrap{padding:0}.view{display:block!important;page-break-after:avoid}.card,.month{box-shadow:none;border:1px solid #bbb}body{background:white}.grid{grid-template-columns:repeat(4,1fr)}.monthgrid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div id="login" class="login no-print"><div class="loginbox"><h1>Portal de Gestão Operacional - Equipe E</h1><p class="muted">Piloto compartilhado • escolha o perfil de acesso. A senha não fica exposta na página inicial; ela será solicitada somente após selecionar Supervisor ou Especialista.</p><div class="logingrid"><div class="logincard"><h3>👷 Colaborador</h3><p>Acesso rápido para solicitar folga e acompanhar o status das próprias solicitações.</p><button class="btn green" onclick="entrarColaborador()">Entrar como colaborador</button></div><div class="logincard"><h3>⭐ Especialista</h3><p>Responsável: <b>Alexandre Modesto de Oliveira</b>. Aprova/reprova folgas, acompanha escala, férias, banco de horas, treinamentos e feedback operacional.</p><button class="btn yellow" onclick="abrirLoginPerfil('especialista')">Entrar como especialista</button></div><div class="logincard"><h3>👨‍💼 Supervisor</h3><p>Acesso completo aos módulos de gestão, aprovações finais, indicadores e relatórios.</p><button class="btn" onclick="abrirLoginPerfil('supervisor')">Entrar como supervisor</button></div></div><div id="loginPerfil" class="logincard" style="display:none;margin-top:16px;background:#fff"><h3 id="loginPerfilTitulo">Acesso</h3><p id="loginPerfilDesc" class="muted"></p><label id="loginPerfilLabel">Senha</label><input id="senhaPerfil" class="senha" type="password" placeholder="Digite a senha"><div class="actions"><button class="btn" onclick="confirmarLoginPerfil()">Confirmar acesso</button><button class="btn secondary" onclick="fecharLoginPerfil()">Cancelar</button></div></div></div></div>
+<div id="app" class="app">
+<header class="top"><div><h1>Portal de Gestão Operacional - Equipe E</h1><p>Férias, banco de horas, solicitação de folgas, avaliação Impulse, ranking, PDI e controle comportamental</p></div><div class="brand"><b>Energia Pecém</b><br>Piloto GitHub + Firebase • 2026</div></header>
+<div class="rolebar no-print"><span id="roleLabel">Acesso não identificado</span><span id="firebaseStatus" class="badge gray">Firebase: conectando</span><button class="btn secondary" onclick="sair()">Sair</button></div>
+<div class="wrap">
+ <div class="mobile-hint no-print">📱 Modo celular ativado: use o menu inferior para navegar. Para o operador, a solicitação de folga fica em poucos cliques.</div>
+ <div class="quick-mobile no-print"><button class="btn green" type="button" onclick="showQuick('portal')">Solicitar folga</button><button class="btn" type="button" onclick="showQuick('supervisor')">Aprovações</button></div>
+ <nav class="tabs no-print">
+  <button class="tab active supervisor-tab leader-tab" onclick="show(event,'dash')">Dashboard</button>
+  <button class="tab" onclick="show(event,'portal')">Portal do Colaborador</button>
+  <button class="tab supervisor-tab leader-tab" onclick="show(event,'supervisor')">Painel Aprovação</button>
+  <button class="tab supervisor-tab full-tab" onclick="show(event,'equipe')">Equipe</button>
+  <button class="tab supervisor-tab leader-tab" onclick="show(event,'ferias')">Férias 2026</button>
+  <button class="tab supervisor-tab leader-tab" onclick="show(event,'banco')">Banco de Horas</button>
+  <button class="tab supervisor-tab leader-tab" onclick="show(event,'treinamentos')">Treinamentos</button>
+  <button class="tab supervisor-tab full-tab" onclick="show(event,'avaliacao')">Avaliação / PDI</button>
+  <button class="tab supervisor-tab full-tab" onclick="show(event,'ranking')">Ranking</button>
+  <button class="tab supervisor-tab full-tab" onclick="show(event,'comport')">Comportamental</button>
+  <button class="tab supervisor-tab full-tab" onclick="show(event,'rel')">Relatórios</button>
+ </nav>
+
+ <section id="dash" class="view active"><h2>Dashboard Executivo</h2><div class="grid" id="kpis"></div><div class="grid2" style="margin-top:14px"><div class="card"><h3>Alertas da Supervisão</h3><div id="alertas"></div></div><div class="card"><h3>Próximas Ausências</h3><div id="proximas"></div></div></div></section>
+
+ <section id="portal" class="view"><h2>Portal do Colaborador - Solicitação de Folga</h2><div class="grid2"><div class="card"><h3>Nova solicitação</h3><div class="formgrid"><div><label>Colaborador</label><select id="solNome" onchange="render()"></select></div><div><label>Tipo</label><select id="solTipo"><option>Banco de horas</option><option>Compensação</option><option>Folga programada</option><option>Troca de turno</option></select></div><div><label>Data inicial</label><input type="date" id="solIni"></div><div><label>Data final</label><input type="date" id="solFim"></div></div><div class="formgrid3" style="margin-top:10px"><div><label>Turno afetado</label><select id="solTurno"><option>Manhã</option><option>Tarde</option><option>Noite</option><option>Integral</option></select></div><div><label>Saldo estimado de banco</label><input id="solSaldo" placeholder="Ex.: +12:30"></div><div><label>Contato / observação rápida</label><input id="solContato" placeholder="Opcional"></div></div><div style="margin-top:10px"><label>Justificativa</label><textarea id="solJust" rows="4" placeholder="Descreva a necessidade da folga"></textarea></div><div class="actions"><button class="btn green" onclick="criarSolicitacao()">Enviar solicitação</button><button class="btn secondary" onclick="limparSolicitacao()">Limpar</button></div><p class="muted small">Ao enviar, o sistema verifica automaticamente férias, folgas já solicitadas, função do colaborador e efetivo mínimo configurado.</p></div><div class="card"><h3>Regras automáticas</h3><div class="pillrow"><span class="badge info">Efetivo mínimo: <span id="minEfetivoTxt"></span></span><span class="badge warn">Alerta por mesma categoria</span><span class="badge crit">Bloqueio se efetivo crítico</span></div><div class="sep"></div><p><b>Status possíveis:</b></p><p><span class="badge warn">Aguardando aprovação</span> <span class="badge crit">Atenção operacional</span> <span class="badge ok">Aprovada</span> <span class="badge gray">Reprovada</span></p></div></div><div class="card" style="margin-top:14px"><h3>Minhas solicitações / Histórico</h3><table id="tblSolicitacoesPortal"></table></div></section>
+
+ <section id="supervisor" class="view"><h2>Painel de Aprovação - Supervisor/Especialista</h2><div class="card"><h3>Solicitações pendentes</h3><table id="tblSupervisor"></table></div><div class="card full-tab" style="margin-top:14px"><h3>Configurações de aprovação</h3><div class="formgrid3"><div><label>Efetivo mínimo disponível</label><input type="number" id="cfgMinEfetivo" min="1" onchange="db.config.minEfetivo=Number(this.value);save()"></div><div><label>Permitir ausência simultânea mesma categoria?</label><select id="cfgMesmaCat" onchange="db.config.permiteMesmaCat=this.value==='sim';save()"><option value="nao">Não recomendado</option><option value="sim">Sim</option></select></div><div><label>Supervisor responsável</label><input id="cfgSupervisor" onchange="db.config.supervisor=this.value;save()"></div></div></div></section>
+
+ <section id="equipe" class="view"><h2>Cadastro da Equipe</h2><div class="actions"><button class="btn" onclick="adicionarPessoa()">Adicionar colaborador</button><button class="btn secondary" onclick="exportarDados()">Backup JSON</button><button class="btn red" onclick="resetar()">Restaurar base inicial</button></div><div class="card"><table id="tblEquipe"></table></div></section>
+
+ <section id="ferias" class="view"><h2>Planejamento de Férias 2026</h2><div class="actions"><button class="btn" onclick="adicionarFerias()">Adicionar férias</button><button class="btn secondary" onclick="window.print()">Imprimir calendário</button></div><div class="monthgrid" id="calFerias"></div><div class="card" style="margin-top:14px"><h3>Escala consolidada</h3><table id="tblFerias"></table></div></section>
+
+ <section id="banco" class="view"><h2>Banco de Horas</h2><div class="card full-tab"><h3>Importação da planilha semanal do RH</h3><p class="muted">Aceita XLSX/CSV. Procura automaticamente colunas como Nome, Matrícula, Saldo, Banco de Horas, Crédito e Débito.</p><input type="file" accept=".xlsx,.xls,.csv" onchange="importarBanco(event)"></div><div class="card" style="margin-top:14px"><table id="tblBanco"></table></div></section>
+
+
+ <section id="treinamentos" class="view"><h2>Treinamentos e Certificações</h2><div class="card"><h3>Novo registro de treinamento</h3><div class="formgrid"><div><label>Colaborador</label><select id="treinNome"></select></div><div><label>Treinamento</label><input id="treinTitulo" placeholder="Ex.: NR-10, PT Digital, Brigada"></div><div><label>Data</label><input type="date" id="treinData"></div><div><label>Vencimento</label><input type="date" id="treinVenc"></div></div><div class="actions"><button class="btn green" onclick="salvarTreinamento()">Salvar treinamento</button></div></div><div class="card" style="margin-top:14px"><h3>Histórico de treinamentos</h3><table id="tblTreinamentos"></table></div></section>
+
+ <section id="avaliacao" class="view"><h2>Avaliação Impulse e PDI</h2><div class="actions"><button class="btn secondary" onclick="window.print()">Imprimir PDI</button></div><div class="grid2"><div class="card"><h3>Mapa de competências</h3><table id="tblAval"></table></div><div class="card"><h3>Plano de Desenvolvimento Individual - Alertas</h3><div id="pdi"></div></div></div></section>
+
+ <section id="ranking" class="view"><h2>Ranking Operacional</h2><div class="card"><p class="muted">IDO = Avaliação Impulse + rotina operacional + segurança + feedback + disponibilidade. A pontuação pode ser ajustada com registros positivos e melhorias.</p><div id="rankingBox"></div></div></section>
+
+ <section id="comport" class="view"><h2>Controle Comportamental</h2><div class="card"><h3>Novo registro</h3><div class="formgrid"><div><label>Colaborador</label><select id="compNome"></select></div><div><label>Tipo</label><select id="compTipo"><option>Reconhecimento</option><option>Feedback de melhoria</option><option>Alinhamento de postura</option><option>Ocorrência positiva</option></select></div><div><label>Pontos no IDO</label><input type="number" id="compPts" value="0"></div><div><label>Data</label><input type="date" id="compData"></div></div><div style="margin-top:10px"><label>Descrição / encaminhamento</label><textarea id="compDesc" rows="4"></textarea></div><div class="actions"><button class="btn green" onclick="salvarComportamento()">Salvar registro</button></div></div><div class="card" style="margin-top:14px"><table id="tblComport"></table></div></section>
+
+ <section id="rel" class="view"><h2>Relatórios Gerenciais</h2><div class="grid"><div class="card"><h3>Relatório mensal</h3><p>Consolida férias, folgas, banco de horas, avaliação, ranking e PDI.</p><button class="btn" onclick="window.print()">Imprimir relatório</button></div><div class="card"><h3>Exportar base</h3><p>Gera um arquivo JSON para backup dos dados salvos no navegador.</p><button class="btn secondary" onclick="exportarDados()">Exportar JSON</button></div><div class="card"><h3>Uso operacional</h3><p>Indicado para acompanhamento diário pelo supervisor e fechamento mensal da Equipe E.</p></div><div class="card"><h3>Próximos passos</h3><p>Integração futura com Power Apps, SharePoint ou Portal da Operação.</p></div></div></section>
+</div>
+<div class="printbar no-print"><button class="btn" onclick="window.print()">Imprimir</button></div>
+</div>
+<script>
+// Configuração Firebase - Projeto Equipe E
+const firebaseConfig = {
+  apiKey: "AIzaSyBIC_ni8Cc_OMP0l24rTxEPGgQp9AK3g2s",
+  authDomain: "equipe-e-f769e.firebaseapp.com",
+  projectId: "equipe-e-f769e",
+  storageBucket: "equipe-e-f769e.firebasestorage.app",
+  messagingSenderId: "645086616559",
+  appId: "1:645086616559:web:78d5a67feabbd95088b41a",
+  measurementId: "G-E7MMSN8X22"
+};
+
+let firestoreAtivo = false;
+let firebaseDb = null;
+let SISTEMA_DOC = null;
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  if (firebase.analytics) firebase.analytics();
+  firebaseDb = firebase.firestore();
+  SISTEMA_DOC = firebaseDb.collection('sistema').doc('gestao_equipe_e');
+  firestoreAtivo = true;
+} catch (erro) {
+  console.warn('Firebase não iniciado. O sistema funcionará em modo local.', erro);
+}
+
+const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const competencias=['Adaptabilidade','Colaboração Efetiva','Resolução de Problemas','Foco em Resultados','Autogestão e Autonomia'];
+const baseInicial={
+ config:{minEfetivo:5,permiteMesmaCat:false,supervisor:'Supervisor de Operação'},
+ pessoas:[
+  {nome:'ALEXANDRE MODESTO DE OLIVEIRA',mat:'005576',cargo:'OPERADOR USINA ESP',cat:'Especialista',banco:'00:00',ido:96,impulse:4.00,comp:{'Adaptabilidade':4.0,'Colaboração Efetiva':4.0,'Resolução de Problemas':4.0,'Foco em Resultados':4.0,'Autogestão e Autonomia':4.0}},
+  {nome:'ALVARO SOUZA DA SILVA',mat:'005313',cargo:'OPERADOR USINA PL',cat:'Operador Pleno',banco:'00:00',ido:88,impulse:3.10,comp:{'Adaptabilidade':3.0,'Colaboração Efetiva':3.0,'Resolução de Problemas':3.0,'Foco em Resultados':3.2,'Autogestão e Autonomia':3.0}},
+  {nome:'DAVID FERNANDES DA SILVA',mat:'710693',cargo:'OPERADOR USINA JR',cat:'Operador Júnior',banco:'00:00',ido:83,impulse:3.00,comp:{'Adaptabilidade':3.0,'Colaboração Efetiva':3.0,'Resolução de Problemas':3.0,'Foco em Resultados':3.0,'Autogestão e Autonomia':3.0}},
+  {nome:'FRANCISCO HELTON MENDES VASCONCELOS',mat:'004349',cargo:'OPERADOR USINA SR',cat:'Operador Sênior',banco:'00:00',ido:94,impulse:3.11,comp:{'Adaptabilidade':2.8,'Colaboração Efetiva':2.8,'Resolução de Problemas':2.8,'Foco em Resultados':2.6,'Autogestão e Autonomia':2.8}},
+  {nome:'IZAQUIEL SILVA MAGALHAES',mat:'709285',cargo:'OPERADOR USINA JR',cat:'Operador Júnior',banco:'00:00',ido:81,impulse:2.05,comp:{'Adaptabilidade':2.0,'Colaboração Efetiva':2.0,'Resolução de Problemas':2.2,'Foco em Resultados':1.8,'Autogestão e Autonomia':2.2}},
+  {nome:'JARDIEL LOPES RODRIGUES',mat:'006319',cargo:'OPERADOR USINA PL',cat:'Operador Pleno',banco:'00:00',ido:86,impulse:2.75,comp:{'Adaptabilidade':3.0,'Colaboração Efetiva':2.8,'Resolução de Problemas':2.8,'Foco em Resultados':2.6,'Autogestão e Autonomia':2.8}},
+  {nome:'RAIMUNDO SOARES RAMOS NETO',mat:'005413',cargo:'OPERADOR USINA SR',cat:'Operador Sênior',banco:'00:00',ido:91,impulse:3.70,comp:{'Adaptabilidade':3.6,'Colaboração Efetiva':3.8,'Resolução de Problemas':3.8,'Foco em Resultados':3.6,'Autogestão e Autonomia':3.8}}
+ ],
+ ferias:[
+  {nome:'ALEXANDRE MODESTO DE OLIVEIRA',inicio:'2026-01-10',fim:'2026-01-30',status:'Programada'},
+  {nome:'JARDIEL LOPES RODRIGUES',inicio:'2026-03-01',fim:'2026-03-26',status:'Programada'},
+  {nome:'FRANCISCO HELTON MENDES VASCONCELOS',inicio:'2026-07-19',fim:'2026-08-07',status:'Programada'},
+  {nome:'ALVARO SOUZA DA SILVA',inicio:'2026-08-08',fim:'2026-08-27',status:'Programada'},
+  {nome:'RAIMUNDO SOARES RAMOS NETO',inicio:'2026-10-03',fim:'2026-10-22',status:'Programada'},
+  {nome:'IZAQUIEL SILVA MAGALHAES',inicio:'2026-11-27',fim:'2026-12-15',status:'Programada'}
+ ],
+ solicitacoes:[],treinamentos:[],comport:[],obs:['David sem programação de férias vencidas em 2026 na escala enviada.']
+};
+let db=JSON.parse(localStorage.getItem('portalEquipeE_piloto')||'null')||structuredClone(baseInicial);
+if(!db.treinamentos) db.treinamentos=[];
+const SENHA_SUPERVISOR='SupEpecem@2026';
+const SENHA_ESPECIALISTA='AlexEsp@2026';
+let perfilAtual=null;
+
+function rotularTabelas(){
+ document.querySelectorAll('table').forEach(tbl=>{
+   const headers=[...tbl.querySelectorAll('tr:first-child th')].map(th=>th.innerText.trim());
+   tbl.querySelectorAll('tr').forEach((tr,ri)=>{
+     if(ri===0)return;
+     [...tr.children].forEach((td,i)=>{ if(headers[i]) td.setAttribute('data-label',headers[i]); });
+   });
+ });
+}
+function showQuick(id){
+ if(perfilAtual==='colaborador'&&id!=='portal'){alert('Acesso restrito ao Supervisor/Especialista.');return}
+ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ const btn=document.querySelector("button[onclick*=\'"+id+"\']");
+ if(btn) btn.classList.add('active');
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function abrirApp(perfil){perfilAtual=perfil;document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';let label={supervisor:'Acesso: Supervisor - módulos completos',especialista:'Acesso: Especialista - Alexandre Modesto de Oliveira',colaborador:'Acesso: Colaborador - somente solicitação de folga'}[perfil];document.getElementById('roleLabel').innerText=label;document.querySelectorAll('.supervisor-tab').forEach(t=>t.classList.toggle('hide',perfil==='colaborador'));document.querySelectorAll('.full-tab').forEach(t=>t.classList.toggle('hide',perfil!=='supervisor'));document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(perfil==='supervisor'||perfil==='especialista'){document.getElementById('dash').classList.add('active');document.querySelector("button[onclick*=\'dash\']").classList.add('active')}else{document.getElementById('portal').classList.add('active');document.querySelector("button[onclick*=\'portal\']").classList.add('active')}render()}
+let perfilLoginSelecionado=null;
+function entrarColaborador(){abrirApp('colaborador')}
+function abrirLoginPerfil(perfil){perfilLoginSelecionado=perfil;document.getElementById('loginPerfil').style.display='block';document.getElementById('senhaPerfil').value='';if(perfil==='especialista'){document.getElementById('loginPerfilTitulo').innerText='Acesso do Especialista - Alexandre';document.getElementById('loginPerfilDesc').innerText='Digite a senha individual do Alexandre para acessar o painel do especialista.';document.getElementById('loginPerfilLabel').innerText='Senha do especialista'}else{document.getElementById('loginPerfilTitulo').innerText='Acesso do Supervisor';document.getElementById('loginPerfilDesc').innerText='Digite a senha do supervisor para acessar os módulos completos.';document.getElementById('loginPerfilLabel').innerText='Senha do supervisor'}document.getElementById('senhaPerfil').focus()}
+function fecharLoginPerfil(){perfilLoginSelecionado=null;document.getElementById('loginPerfil').style.display='none';document.getElementById('senhaPerfil').value=''}
+function confirmarLoginPerfil(){let s=document.getElementById('senhaPerfil').value;if(perfilLoginSelecionado==='especialista'){if(s!==SENHA_ESPECIALISTA){alert('Senha do especialista incorreta.');return}abrirApp('especialista');return}if(perfilLoginSelecionado==='supervisor'){if(s!==SENHA_SUPERVISOR){alert('Senha do supervisor incorreta.');return}abrirApp('supervisor');return}alert('Selecione um perfil de acesso.')}
+function entrarEspecialista(){abrirLoginPerfil('especialista')}
+function entrarSupervisor(){abrirLoginPerfil('supervisor')}
+function sair(){perfilAtual=null;perfilLoginSelecionado=null;document.getElementById('app').style.display='none';document.getElementById('login').style.display='flex';document.getElementById('senhaPerfil').value='';document.getElementById('loginPerfil').style.display='none'}
+async function save(){
+ localStorage.setItem('portalEquipeE_piloto', JSON.stringify(db));
+ render();
+ if (firestoreAtivo && SISTEMA_DOC) {
+   try {
+     await SISTEMA_DOC.set({
+       dados: db,
+       atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+       versao: 'piloto-github-firebase'
+     }, { merge: true });
+     setFirebaseStatus('Firebase: salvo', 'ok');
+   } catch (erro) {
+     console.error('Erro ao salvar no Firestore:', erro);
+     setFirebaseStatus('Firebase: erro ao salvar', 'crit');
+   }
+ }
+}
+
+function setFirebaseStatus(texto, classe){
+ const el=document.getElementById('firebaseStatus');
+ if(!el)return;
+ el.className='badge '+(classe||'gray');
+ el.innerText=texto;
+}
+
+async function inicializarSistema(){
+ render();
+ if (!firestoreAtivo || !SISTEMA_DOC) {
+   setFirebaseStatus('Modo local', 'warn');
+   return;
+ }
+ try {
+   setFirebaseStatus('Firebase: conectando', 'info');
+   const snap = await SISTEMA_DOC.get();
+   if (snap.exists && snap.data().dados) {
+     db = snap.data().dados;
+     if(!db.treinamentos) db.treinamentos=[];
+     localStorage.setItem('portalEquipeE_piloto', JSON.stringify(db));
+     render();
+     setFirebaseStatus('Firebase: conectado', 'ok');
+   } else {
+     await SISTEMA_DOC.set({
+       dados: db,
+       criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+       atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+       versao: 'piloto-github-firebase'
+     });
+     setFirebaseStatus('Firebase: base criada', 'ok');
+   }
+   SISTEMA_DOC.onSnapshot((doc) => {
+     if (doc.exists && doc.data().dados) {
+       db = doc.data().dados;
+       if(!db.treinamentos) db.treinamentos=[];
+       localStorage.setItem('portalEquipeE_piloto', JSON.stringify(db));
+       render();
+       setFirebaseStatus('Firebase: sincronizado', 'ok');
+     }
+   });
+ } catch (erro) {
+   console.error('Erro ao conectar ao Firestore:', erro);
+   setFirebaseStatus('Firebase: sem permissão', 'crit');
+   alert('Não foi possível conectar ao Firestore. Verifique se o banco está em modo de teste ou se as regras permitem leitura e gravação. O sistema continuará em modo local neste computador.');
+ }
+}
+function show(ev,id){if(perfilAtual==='colaborador'&&id!=='portal'){alert('Acesso restrito ao Supervisor/Especialista.');return}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));ev.target.classList.add('active')}
+function fmt(d){if(!d)return'';return new Date(d+'T00:00:00').toLocaleDateString('pt-BR')}
+function overlap(a1,a2,b1,b2){return a1<=b2 && b1<=a2}
+function pessoa(nome){return db.pessoas.find(p=>p.nome===nome)}
+function iniciais(n){return n.split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('')}
+function statusBadge(st){let c=st.includes('Aprovada')?'ok':st.includes('Reprovada')?'gray':st.includes('Atenção')?'crit':'warn';return `<span class="badge ${c}">${st}</span>`}
+function validarSolicitacao(sol){let p=pessoa(sol.nome);let ausencias=db.ferias.filter(f=>overlap(sol.inicio,sol.fim,f.inicio,f.fim)).concat(db.solicitacoes.filter(s=>s.status==='Aprovada'&&overlap(sol.inicio,sol.fim,s.inicio,s.fim)));
+ let efetivoDisp=db.pessoas.length-ausencias.length-1;
+ let mesma=ausencias.some(a=>{let pp=pessoa(a.nome);return pp&&p&&pp.cat===p.cat});
+ let avisos=[]; if(efetivoDisp<db.config.minEfetivo) avisos.push('Efetivo abaixo do mínimo'); if(mesma&&!db.config.permiteMesmaCat) avisos.push('Já existe ausência na mesma categoria'); if(ausencias.find(a=>a.nome===sol.nome)) avisos.push('Colaborador já possui ausência no período');
+ return {ok:avisos.length===0, avisos, efetivoDisp};
+}
+function render(){
+ document.getElementById('cfgMinEfetivo').value=db.config.minEfetivo;document.getElementById('cfgMesmaCat').value=db.config.permiteMesmaCat?'sim':'nao';document.getElementById('cfgSupervisor').value=db.config.supervisor;document.getElementById('minEfetivoTxt').innerText=db.config.minEfetivo;
+ let pend=db.solicitacoes.filter(s=>s.status.includes('Aguardando')||s.status.includes('Atenção')).length;let aprov=db.solicitacoes.filter(s=>s.status==='Aprovada').length;let media=(db.pessoas.reduce((a,p)=>a+(Number(p.impulse)||0),0)/db.pessoas.length).toFixed(2);
+ document.getElementById('kpis').innerHTML=[['Efetivo',db.pessoas.length],['Férias 2026',db.ferias.length],['Folgas aprovadas',aprov],['Pendências',pend],['Média Impulse',media],['PDI abertos',contaPDI()],['Banco crítico',db.pessoas.filter(p=>String(p.banco).startsWith('-')).length],['Registros',db.comport.length]].map(x=>`<div class="card kpi"><div class="num">${x[1]}</div><div class="lbl">${x[0]}</div></div>`).join('');
+ document.getElementById('alertas').innerHTML=[...db.obs.map(o=>`<div class="request"><b>Observação:</b> ${o}</div>`),...db.solicitacoes.filter(s=>s.status.includes('Atenção')).map(s=>`<div class="request critb"><b>${s.nome}</b><br>${fmt(s.inicio)} a ${fmt(s.fim)}<br>${s.alertas.join(' | ')}</div>`)].join('')||'<span class="badge ok">Sem alertas críticos</span>';
+ let aus=[...db.ferias.map(f=>({...f,tipo:'Férias'})),...db.solicitacoes.filter(s=>s.status==='Aprovada').map(s=>({...s,tipo:s.tipo}))].sort((a,b)=>a.inicio.localeCompare(b.inicio)).slice(0,8);
+ document.getElementById('proximas').innerHTML=aus.map(a=>`<div class="event"><b>${a.nome.split(' ')[0]}</b> • ${a.tipo}<br>${fmt(a.inicio)} a ${fmt(a.fim)}</div>`).join('')||'Sem ausências.';
+ ['solNome','compNome','treinNome'].forEach(id=>{document.getElementById(id).innerHTML=db.pessoas.map(p=>`<option>${p.nome}</option>`).join('')});
+ let listaPortal=db.solicitacoes.slice();if(perfilAtual==='colaborador'&&document.getElementById('solNome').value){listaPortal=listaPortal.filter(s=>s.nome===document.getElementById('solNome').value)}document.getElementById('tblSolicitacoesPortal').innerHTML='<tr><th>Colaborador</th><th>Período</th><th>Tipo</th><th>Status</th><th>Validação</th></tr>'+listaPortal.reverse().map(s=>`<tr><td>${s.nome}</td><td>${fmt(s.inicio)} a ${fmt(s.fim)}</td><td>${s.tipo}</td><td>${statusBadge(s.status)}</td><td>${s.alertas?.join('<br>')||'Sem restrição'}</td></tr>`).join('');
+ document.getElementById('tblSupervisor').innerHTML='<tr><th>Colaborador</th><th>Período</th><th>Tipo</th><th>Status</th><th>Efetivo</th><th>Justificativa</th><th>Ação</th></tr>'+db.solicitacoes.map((s,i)=>`<tr><td>${s.nome}</td><td>${fmt(s.inicio)} a ${fmt(s.fim)}</td><td>${s.tipo}</td><td>${statusBadge(s.status)}</td><td>${s.efetivoDisp??''}</td><td>${s.just||''}</td><td><button class="btn green" onclick="aprovar(${i})">Aprovar</button> <button class="btn red" onclick="reprovar(${i})">Reprovar</button></td></tr>`).join('');
+ document.getElementById('tblEquipe').innerHTML='<tr><th>Nome</th><th>Matrícula</th><th>Cargo</th><th>Categoria</th><th>Banco</th><th>Impulse</th><th>IDO</th></tr>'+db.pessoas.map(p=>`<tr><td>${p.nome}</td><td>${p.mat}</td><td>${p.cargo}</td><td>${p.cat}</td><td>${p.banco}</td><td>${Number(p.impulse).toFixed(2)}</td><td><input type="number" value="${p.ido}" onchange="pessoa('${p.nome}').ido=Number(this.value);save()"></td></tr>`).join('');
+ document.getElementById('calFerias').innerHTML=meses.map((m,i)=>`<div class="month"><h4>${m}</h4>${db.ferias.filter(f=>new Date(f.inicio+'T00:00:00').getMonth()==i||new Date(f.fim+'T00:00:00').getMonth()==i).map(f=>`<div class="event"><b>${f.nome.split(' ')[0]}</b><br>${fmt(f.inicio)} a ${fmt(f.fim)}</div>`).join('')||'<span class="muted">Sem férias</span>'}</div>`).join('');
+ document.getElementById('tblFerias').innerHTML='<tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Status</th></tr>'+db.ferias.map(f=>`<tr><td>${f.nome}</td><td>${fmt(f.inicio)}</td><td>${fmt(f.fim)}</td><td><span class="badge ok">${f.status}</span></td></tr>`).join('');
+ document.getElementById('tblBanco').innerHTML='<tr><th>Colaborador</th><th>Matrícula</th><th>Saldo</th><th>Status</th></tr>'+db.pessoas.map(p=>`<tr><td>${p.nome}</td><td>${p.mat}</td><td><b>${p.banco}</b></td><td>${String(p.banco).startsWith('-')?'<span class="badge crit">Negativo</span>':'<span class="badge ok">Controlado</span>'}</td></tr>`).join('');
+ document.getElementById('tblTreinamentos').innerHTML='<tr><th>Data</th><th>Colaborador</th><th>Treinamento</th><th>Vencimento</th><th>Status</th></tr>'+db.treinamentos.slice().reverse().map(t=>`<tr><td>${fmt(t.data)}</td><td>${t.nome}</td><td>${t.titulo}</td><td>${fmt(t.venc)}</td><td>${statusTreinamento(t.venc)}</td></tr>`).join('')||'<tr><td colspan="5">Sem treinamentos registrados.</td></tr>';
+ document.getElementById('tblAval').innerHTML='<tr><th>Colaborador</th><th>Média</th>'+competencias.map(c=>`<th>${c}</th>`).join('')+'</tr>'+db.pessoas.map(p=>`<tr><td>${p.nome}</td><td><b>${Number(p.impulse).toFixed(2)}</b></td>${competencias.map(c=>`<td>${compBadge(p.comp?.[c])}</td>`).join('')}</tr>`).join('');
+ document.getElementById('pdi').innerHTML=db.pessoas.map(p=>competencias.filter(c=>(p.comp?.[c]||0)<3).map(c=>`<div class="request critb"><b>${p.nome}</b><br>${c}: ${p.comp[c]}<br><span class="small">Sugestão: acompanhamento em campo, feedback individual e meta de evolução para próxima avaliação.</span></div>`).join('')).join('')||'<span class="badge ok">Sem PDI crítico</span>';
+ let cats=[...new Set(db.pessoas.map(p=>p.cat))];document.getElementById('rankingBox').innerHTML=cats.map(cat=>`<h3>${cat}</h3>`+db.pessoas.filter(p=>p.cat===cat).sort((a,b)=>b.ido-a.ido).map((p,i)=>`<div class="request okb"><b>${i+1}º ${p.nome}</b><span style="float:right" class="badge info">${p.ido} pts</span><div class="bar" style="margin-top:8px"><span style="width:${Math.min(p.ido,100)}%"></span></div></div>`).join('')).join('');
+ document.getElementById('tblComport').innerHTML='<tr><th>Data</th><th>Colaborador</th><th>Tipo</th><th>Pontos</th><th>Descrição</th></tr>'+db.comport.slice().reverse().map(c=>`<tr><td>${fmt(c.data)}</td><td>${c.nome}</td><td>${c.tipo}</td><td>${c.pts}</td><td>${c.desc}</td></tr>`).join('');
+ rotularTabelas();
+}
+
+function compBadge(v){let c=v>=3.5?'ok':v>=3?'warn':'crit';return `<span class="badge ${c}">${v??'-'}</span>`}
+function contaPDI(){return db.pessoas.reduce((a,p)=>a+competencias.filter(c=>(p.comp?.[c]||0)<3).length,0)}
+function criarSolicitacao(){let sol={nome:solNome.value,tipo:solTipo.value,inicio:solIni.value,fim:solFim.value||solIni.value,turno:solTurno.value,saldo:solSaldo.value,contato:solContato.value,just:solJust.value,data:new Date().toISOString().slice(0,10)};if(!sol.inicio){alert('Informe a data da folga.');return}let val=validarSolicitacao(sol);sol.status=val.ok?'Aguardando aprovação':'Atenção operacional';sol.alertas=val.avisos;sol.efetivoDisp=val.efetivoDisp;db.solicitacoes.push(sol);save();alert('Solicitação enviada para avaliação do Especialista/Supervisor.');limparSolicitacao()}
+function limparSolicitacao(){['solIni','solFim','solSaldo','solContato','solJust'].forEach(id=>document.getElementById(id).value='')}
+function aprovar(i){let val=validarSolicitacao(db.solicitacoes[i]);if(!val.ok&&!confirm('Existem alertas: '+val.avisos.join(' | ')+'. Deseja aprovar mesmo assim?'))return;db.solicitacoes[i].status='Aprovada';db.solicitacoes[i].alertas=val.avisos;db.solicitacoes[i].efetivoDisp=val.efetivoDisp;save()}
+function reprovar(i){db.solicitacoes[i].status='Reprovada';db.solicitacoes[i].obsSup=prompt('Motivo da reprovação / sugestão de reprogramação:')||'';save()}
+
+function statusTreinamento(venc){if(!venc)return '<span class="badge gray">Sem vencimento</span>';let dias=Math.ceil((new Date(venc+'T00:00:00')-new Date())/86400000);if(dias<0)return '<span class="badge crit">Vencido</span>';if(dias<=30)return '<span class="badge warn">A vencer</span>';return '<span class="badge ok">Válido</span>'}
+function salvarTreinamento(){let t={nome:treinNome.value,titulo:treinTitulo.value,data:treinData.value||new Date().toISOString().slice(0,10),venc:treinVenc.value};if(!t.titulo){alert('Informe o treinamento.');return}db.treinamentos.push(t);save();treinTitulo.value='';treinData.value='';treinVenc.value=''}
+function salvarComportamento(){let c={nome:compNome.value,tipo:compTipo.value,pts:Number(compPts.value||0),data:compData.value||new Date().toISOString().slice(0,10),desc:compDesc.value};db.comport.push(c);let p=pessoa(c.nome);if(p)p.ido+=c.pts;save();compDesc.value='';compPts.value=0}
+function adicionarPessoa(){let n=prompt('Nome do colaborador');if(!n)return;db.pessoas.push({nome:n.toUpperCase(),mat:prompt('Matrícula')||'',cargo:prompt('Cargo')||'',cat:prompt('Categoria')||'Operador',banco:'00:00',ido:80,impulse:0,comp:{}});save()}
+function adicionarFerias(){let nome=prompt('Nome do colaborador');let inicio=prompt('Início AAAA-MM-DD');let fim=prompt('Fim AAAA-MM-DD');if(nome&&inicio&&fim){db.ferias.push({nome:nome.toUpperCase(),inicio,fim,status:'Programada'});save()}}
+function importarBanco(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=ev=>{let wb=XLSX.read(ev.target.result,{type:'array'});let rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});rows.forEach(row=>{let nome=(row.Nome||row.NOME||row.Colaborador||row.COLABORADOR||'').toString().toUpperCase();let mat=(row.Matrícula||row.MATRÍCULA||row.Matricula||row.MATRICULA||'').toString();let saldo=row.Saldo||row.SALDO||row['Banco de Horas']||row.BANCO||row['SALDO BANCO']||row['Saldo Banco']||'';let p=db.pessoas.find(x=>x.mat===mat||(nome&&x.nome.includes(nome.split(' ')[0])));if(p&&saldo)p.banco=saldo.toString()});save();alert('Importação concluída. Confira a aba Banco de Horas.')};r.readAsArrayBuffer(f)}
+function exportarDados(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup_portal_equipe_e_piloto.json';a.click()}
+function resetar(){if(confirm('Restaurar a base inicial da versão 7 e apagar alterações locais?')){db=structuredClone(baseInicial);localStorage.setItem('portalEquipeE_piloto',JSON.stringify(db));render()}}
+inicializarSistema();
+</script>
+</body>
+</html>
