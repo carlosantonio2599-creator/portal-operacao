@@ -1,140 +1,106 @@
-import { auth, db } from './firebase-config.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import { collection, doc, getDoc, onSnapshot, setDoc, writeBatch, addDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#063b63">
+  <title>Portal Gestão Equipe E</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div id="loading" class="loading-screen"><div class="spinner"></div><p>Carregando Portal Gestão Equipe E...</p></div>
 
-const teamSeed = [
-  {nome:'ALEXANDRE MODESTO DE OLIVEIRA',matricula:'005576',funcao:'OPERADOR USINA ESP',categoria:'Especialista',status:'Ativo',saldo:'00:00'},
-  {nome:'ALVARO SOUZA DA SILVA',matricula:'005313',funcao:'OPERADOR USINA PL',categoria:'Operador Pleno',status:'Ativo',saldo:'00:00'},
-  {nome:'DAVID FERNANDES DA SILVA',matricula:'710693',funcao:'OPERADOR USINA JR',categoria:'Operador Júnior',status:'Ativo',saldo:'00:00'},
-  {nome:'FRANCISCO HELTON MENDES VASCONCELOS',matricula:'004349',funcao:'OPERADOR USINA SR',categoria:'Operador Sênior',status:'Ativo',saldo:'00:00'},
-  {nome:'IZAQUIEL SILVA MAGALHAES',matricula:'709285',funcao:'OPERADOR USINA JR',categoria:'Operador Júnior',status:'Ativo',saldo:'00:00'},
-  {nome:'JARDIEL LOPES RODRIGUES',matricula:'006319',funcao:'OPERADOR USINA PL',categoria:'Operador Pleno',status:'Ativo',saldo:'00:00'},
-  {nome:'RAIMUNDO SOARES RAMOS NETO',matricula:'005413',funcao:'OPERADOR USINA SR',categoria:'Operador Sênior',status:'Ativo',saldo:'00:00'}
-];
+  <main id="loginPage" class="login-page hidden">
+    <section class="login-hero">
+      <div class="brand-mark">E</div>
+      <span class="eyebrow">ENERGIA PECÉM</span>
+      <h1>Portal Gestão Equipe E</h1>
+      <p>Gestão compartilhada de equipe, folgas, férias e banco de horas.</p>
+      <div class="login-features">
+        <div><strong>Supervisor</strong><span>Acesso completo e administração.</span></div>
+        <div><strong>Especialista</strong><span>Aprovações e acompanhamento operacional.</span></div>
+        <div><strong>Operadores</strong><span>Solicitações e consultas pessoais.</span></div>
+      </div>
+    </section>
+    <section class="login-card">
+      <h2>Entrar</h2>
+      <p class="muted">Use a credencial do seu perfil.</p>
+      <label for="email">E-mail</label>
+      <input id="email" type="email" autocomplete="username" placeholder="perfil.equipee@gmail.com">
+      <label for="password">Senha</label>
+      <div class="password-wrap"><input id="password" type="password" autocomplete="current-password" placeholder="Digite sua senha"><button id="togglePassword" type="button" class="icon-button">◉</button></div>
+      <button id="loginButton" type="button" class="primary-button">Acessar portal</button>
+      <p id="loginMessage" class="message" aria-live="polite"></p>
+      <div class="security-note"><strong>Acesso protegido</strong><span>Autenticação pelo Firebase. As senhas não ficam gravadas no site.</span></div>
+    </section>
+  </main>
 
-const vacationSeed = [
-  {nome:'ALEXANDRE MODESTO DE OLIVEIRA',inicio:'2026-01-10',fim:'2026-01-30',status:'Programada'},
-  {nome:'JARDIEL LOPES RODRIGUES',inicio:'2026-03-01',fim:'2026-03-26',status:'Programada'},
-  {nome:'FRANCISCO HELTON MENDES VASCONCELOS',inicio:'2026-07-19',fim:'2026-08-07',status:'Programada'},
-  {nome:'ALVARO SOUZA DA SILVA',inicio:'2026-08-08',fim:'2026-08-27',status:'Programada'},
-  {nome:'RAIMUNDO SOARES RAMOS NETO',inicio:'2026-10-03',fim:'2026-10-22',status:'Programada'},
-  {nome:'IZAQUIEL SILVA MAGALHAES',inicio:'2026-11-27',fim:'2026-12-15',status:'Programada'}
-];
+  <div id="app" class="app-shell hidden">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-brand"><span class="brand-mark small">E</span><div><strong>Gestão Equipe E</strong><small>Energia Pecém</small></div></div>
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item leadership-nav" data-view="equipe"><span>👥</span>Equipe</button>
+        <button class="nav-item" data-view="folgas"><span>📅</span>Folgas</button>
+        <button class="nav-item leadership-nav" data-view="banco"><span>⏱</span>Banco de horas</button>
+        <button class="nav-item leadership-nav" data-view="ferias"><span>🏖</span>Férias 2026</button>
+      </nav>
+      <div class="sidebar-footer"><div id="sidebarUser" class="sidebar-user"></div><button id="logoutButton" type="button" class="ghost-button">Sair</button></div>
+    </aside>
 
-const months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const state={user:null,profile:null,team:[],requests:[],vacations:[],selectedOperator:null,unsubs:[]};
-const $=id=>document.getElementById(id);
-const leadership=()=>['supervisor','especialista'].includes(state.profile?.perfil);
-const supervisor=()=>state.profile?.perfil==='supervisor';
-const initials=(n='Usuário')=>n.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
-const fmtDate=v=>v?new Date(`${v}T00:00:00`).toLocaleDateString('pt-BR'):'-';
-const normalize=v=>String(v??'').trim().toLowerCase();
+    <section class="workspace">
+      <header class="topbar">
+        <button id="menuButton" class="menu-button" type="button">☰</button>
+        <div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Visão geral da Equipe E</p></div>
+        <div class="topbar-actions"><span id="connectionBadge" class="status-badge">Conectando...</span><div class="user-chip"><span id="userInitials">--</span><div><strong id="userName">Usuário</strong><small id="userRole">Perfil</small></div></div></div>
+      </header>
 
-function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800)}
-function showLogin(){state.unsubs.forEach(fn=>fn&&fn());state.unsubs=[];$('loading').classList.add('hidden');$('app').classList.add('hidden');$('loginPage').classList.remove('hidden')}
-function showApp(){$('loading').classList.add('hidden');$('loginPage').classList.add('hidden');$('app').classList.remove('hidden');applyProfile();listenAll()}
+      <div class="content">
+        <section id="dashboard" class="view active">
+          <div class="welcome-card"><div><span class="eyebrow">GESTÃO OPERACIONAL</span><h2 id="welcomeTitle">Bem-vindo</h2><p>Informações compartilhadas em tempo real para a Equipe E.</p></div><div class="welcome-date"><span id="todayDay"></span><small id="todayMonth"></small></div></div>
+          <div class="metric-grid">
+            <article class="metric-card"><span>Equipe</span><strong id="metricEquipe">0</strong><small>colaboradores cadastrados</small></article>
+            <article class="metric-card"><span>Folgas pendentes</span><strong id="metricFolgas">0</strong><small>aguardando análise</small></article>
+            <article class="metric-card"><span>Férias programadas</span><strong id="metricFerias">0</strong><small>registros em 2026</small></article>
+            <article class="metric-card"><span>Banco negativo</span><strong id="metricBancoNegativo">0</strong><small>colaboradores em alerta</small></article>
+          </div>
+          <div class="dashboard-grid">
+            <article class="panel"><div class="panel-header"><div><h3>Composição da equipe</h3><p>Distribuição por categoria</p></div></div><div id="categoryList" class="category-list"></div></article>
+            <article class="panel"><div class="panel-header"><div><h3>Solicitações recentes</h3><p>Últimas movimentações</p></div><button class="text-button" data-go="folgas">Abrir folgas</button></div><div id="recentRequests" class="request-list compact-list"></div></article>
+          </div>
+        </section>
 
-async function login(){
-  const email=$('email').value.trim(),password=$('password').value;
-  if(!email||!password){$('loginMessage').textContent='Preencha o e-mail e a senha.';return}
-  $('loginButton').disabled=true;$('loginButton').textContent='Entrando...';$('loginMessage').textContent='';
-  try{await signInWithEmailAndPassword(auth,email,password)}catch(e){$('loginMessage').textContent='E-mail ou senha inválidos. Verifique os dados e tente novamente.'}
-  finally{$('loginButton').disabled=false;$('loginButton').textContent='Acessar portal'}
-}
+        <section id="equipe" class="view">
+          <div class="section-heading"><div><h2>Cadastro da Equipe E</h2><p>Colaboradores sincronizados com o Firestore.</p></div><button id="seedTeamButton" class="primary-button compact supervisor-only hidden">Inicializar equipe</button></div>
+          <div class="panel"><div class="table-toolbar"><input id="teamSearch" type="search" placeholder="Pesquisar por nome, matrícula ou função"><span id="teamCount" class="status-badge neutral">0 registros</span></div><div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Matrícula</th><th>Função</th><th>Categoria</th><th>Saldo</th></tr></thead><tbody id="teamTableBody"></tbody></table></div></div>
+        </section>
 
-async function loadProfile(user){
-  const snap=await getDoc(doc(db,'usuarios',user.uid));
-  if(!snap.exists())throw new Error('Perfil não encontrado no Firestore.');
-  const p=snap.data();
-  if(p.ativo!==true)throw new Error('Este acesso está desativado.');
-  return {...p,perfil:normalize(p.perfil)};
-}
+        <section id="folgas" class="view">
+          <div class="section-heading"><div><h2>Solicitações de folga</h2><p>Operadores solicitam; Especialista e Supervisor analisam.</p></div><span id="selectedOperatorBadge" class="status-badge neutral hidden"></span></div>
+          <div class="dashboard-grid">
+            <article id="requestPanel" class="panel"><div class="panel-header"><div><h3>Nova solicitação</h3><p>Informe o período e a justificativa.</p></div></div><div class="form-grid"><label>Colaborador<input id="requestOperatorName" type="text" readonly></label><label>Tipo<select id="requestType"><option>Banco de horas</option><option>Compensação</option><option>Folga programada</option><option>Troca de turno</option></select></label><label>Data inicial<input id="requestStart" type="date"></label><label>Data final<input id="requestEnd" type="date"></label></div><label class="block-label">Justificativa<textarea id="requestReason" rows="4"></textarea></label><label class="confirm-row"><input id="requestConfirmIdentity" type="checkbox"> Confirmo a identificação acima.</label><button id="submitRequestButton" class="primary-button">Enviar solicitação</button><p id="requestMessage" class="message"></p></article>
+            <article class="panel"><div class="panel-header"><div><h3 id="requestListTitle">Solicitações</h3><p id="requestListSubtitle">Histórico do perfil conectado.</p></div></div><div id="requestCards" class="request-list"></div></article>
+          </div>
+        </section>
 
-function applyProfile(){
-  const base=state.profile.nome||state.user.email;
-  const display=state.selectedOperator?.nome||base;
-  $('userName').textContent=display;$('userRole').textContent=state.profile.perfil;$('userInitials').textContent=initials(display);
-  $('sidebarUser').innerHTML=`<strong>${display}</strong><span>${state.profile.perfil}</span>${state.profile.perfil==='operador'?'<button id="switchOperatorButton" class="operator-switch">Trocar identificação</button>':''}`;
-  $('welcomeTitle').textContent=`Olá, ${display.split(' ')[0]}`;
-  document.querySelectorAll('.supervisor-only').forEach(el=>el.classList.toggle('hidden',!supervisor()));
-  document.querySelectorAll('.leadership-nav').forEach(el=>el.classList.toggle('hidden',!leadership()));
-  if($('switchOperatorButton'))$('switchOperatorButton').onclick=openOperatorChooser;
-  updateRequestMode();
-}
+        <section id="banco" class="view">
+          <div class="section-heading"><div><h2>Banco de horas</h2><p>Importação semanal da planilha do RH.</p></div><button id="exportBankButton" class="ghost-button">Exportar CSV</button></div>
+          <div class="panel supervisor-only" id="bankImportPanel"><h3>Importar planilha</h3><p class="muted">Aceita XLSX, XLS ou CSV. O sistema procura Nome, Matrícula e Saldo.</p><input id="bankFile" type="file" accept=".xlsx,.xls,.csv"><p id="bankMessage" class="message"></p></div>
+          <div class="panel"><div class="table-toolbar"><input id="bankSearch" type="search" placeholder="Pesquisar colaborador"><span id="bankUpdated" class="status-badge neutral">Sem importação</span></div><div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Matrícula</th><th>Saldo</th><th>Status</th></tr></thead><tbody id="bankTableBody"></tbody></table></div></div>
+        </section>
 
-function openView(id){
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===id));
-  const titles={dashboard:['Dashboard','Visão geral da Equipe E'],equipe:['Equipe','Cadastro e composição'],folgas:['Folgas','Solicitações e aprovações'],banco:['Banco de horas','Saldos importados do RH'],ferias:['Férias 2026','Planejamento anual']};
-  $('pageTitle').textContent=titles[id][0];$('pageSubtitle').textContent=titles[id][1];$('sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});
-}
+        <section id="ferias" class="view">
+          <div class="section-heading"><div><h2>Planejamento de férias 2026</h2><p>Calendário oficial da Equipe E.</p></div><button id="seedVacationsButton" class="primary-button compact supervisor-only hidden">Inicializar férias</button></div>
+          <div id="vacationCalendar" class="month-grid"></div>
+          <div class="panel"><div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Status</th></tr></thead><tbody id="vacationTableBody"></tbody></table></div></div>
+        </section>
+      </div>
+    </section>
+  </div>
 
-function listenAll(){
-  state.unsubs.push(onSnapshot(collection(db,'colaboradores'),snap=>{state.team=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.nome.localeCompare(b.nome));renderTeam();renderDashboard();populateOperators();if(state.profile.perfil==='operador'&&!state.selectedOperator){const saved=sessionStorage.getItem('equipeESelectedOperator');if(saved){state.selectedOperator=JSON.parse(saved);applyProfile()}else openOperatorChooser()}},err=>toast('Sem acesso à coleção colaboradores.')));
-  state.unsubs.push(onSnapshot(collection(db,'solicitacoes_folga'),snap=>{state.requests=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.criadoEm?.seconds||0)-(a.criadoEm?.seconds||0));renderRequests();renderDashboard()},err=>toast('Não foi possível carregar as solicitações.')));
-  state.unsubs.push(onSnapshot(collection(db,'ferias'),snap=>{state.vacations=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.inicio).localeCompare(String(b.inicio)));renderVacations();renderDashboard()},err=>toast('Não foi possível carregar as férias.')));
-  $('connectionBadge').textContent='Online';
-}
-
-function renderDashboard(){
-  $('metricEquipe').textContent=state.team.length;
-  $('metricFolgas').textContent=state.requests.filter(r=>r.status==='Pendente').length;
-  $('metricFerias').textContent=state.vacations.length;
-  $('metricBancoNegativo').textContent=state.team.filter(p=>String(p.saldo||'').trim().startsWith('-')).length;
-  const counts=state.team.reduce((a,p)=>{a[p.categoria]=(a[p.categoria]||0)+1;return a},{}),max=Math.max(1,...Object.values(counts));
-  $('categoryList').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="category-row"><span>${k}</span><div class="category-track"><span style="width:${v/max*100}%"></span></div><strong>${v}</strong></div>`).join('')||'<p class="muted">Inicialize a equipe para visualizar.</p>';
-  $('recentRequests').innerHTML=state.requests.slice(0,4).map(requestCard).join('')||'<p class="muted">Sem solicitações registradas.</p>';
-}
-
-function renderTeam(){
-  const term=normalize($('teamSearch').value);
-  const list=state.team.filter(p=>[p.nome,p.matricula,p.funcao,p.categoria].some(x=>normalize(x).includes(term)));
-  $('teamTableBody').innerHTML=list.map(p=>`<tr><td><div class="person-cell"><span class="person-avatar">${initials(p.nome)}</span><strong>${p.nome}</strong></div></td><td>${p.matricula||'-'}</td><td>${p.funcao||'-'}</td><td><span class="role-pill">${p.categoria||'-'}</span></td><td><strong>${p.saldo||'00:00'}</strong></td></tr>`).join('')||'<tr><td colspan="5">Nenhum colaborador encontrado.</td></tr>';
-  $('teamCount').textContent=`${list.length} registros`;renderBank();
-}
-
-async function seedTeam(){if(!supervisor())return;if(!confirm('Cadastrar/atualizar os 7 colaboradores no Firestore?'))return;const batch=writeBatch(db);teamSeed.forEach(p=>batch.set(doc(db,'colaboradores',p.matricula),p,{merge:true}));await batch.commit();toast('Equipe inicializada com sucesso.')}
-async function seedVacations(){if(!supervisor())return;if(!confirm('Cadastrar a escala de férias 2026 no Firestore?'))return;const batch=writeBatch(db);vacationSeed.forEach((f,i)=>batch.set(doc(db,'ferias',`2026-${String(i+1).padStart(2,'0')}`),f,{merge:true}));await batch.commit();toast('Férias 2026 inicializadas.')}
-
-function populateOperators(){
-  $('operatorSelect').innerHTML=state.team.filter(p=>p.categoria!=='Especialista').map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
-}
-function openOperatorChooser(){if(state.profile?.perfil!=='operador')return;$('operatorIdentityConfirm').checked=false;$('operatorChooserMessage').textContent='';populateOperators();$('operatorChooser').classList.remove('hidden')}
-function confirmOperator(){const person=state.team.find(p=>p.id===$('operatorSelect').value);if(!person){$('operatorChooserMessage').textContent='Selecione um colaborador.';return}if(!$('operatorIdentityConfirm').checked){$('operatorChooserMessage').textContent='Confirme sua identificação.';return}state.selectedOperator=person;sessionStorage.setItem('equipeESelectedOperator',JSON.stringify(person));$('operatorChooser').classList.add('hidden');applyProfile();renderRequests();toast(`Identificação confirmada: ${person.nome}`)}
-function updateRequestMode(){
-  const isLead=leadership();$('requestPanel').classList.toggle('hidden',isLead);$('selectedOperatorBadge').classList.toggle('hidden',!state.selectedOperator);
-  if(state.selectedOperator){$('selectedOperatorBadge').textContent=`Identificado: ${state.selectedOperator.nome}`;$('requestOperatorName').value=state.selectedOperator.nome}
-  $('requestListTitle').textContent=isLead?'Solicitações da equipe':'Minhas solicitações';$('requestListSubtitle').textContent=isLead?'Analise as solicitações pendentes.':'Histórico do colaborador identificado.';
-}
-function visibleRequests(){if(leadership())return state.requests;if(!state.selectedOperator)return[];return state.requests.filter(r=>r.colaboradorId===state.selectedOperator.id||r.colaboradorNome===state.selectedOperator.nome)}
-function requestCard(r){const cls=r.status==='Aprovada'?'approved':r.status==='Reprovada'?'rejected':'';return `<div class="request-card ${cls}"><div class="request-meta"><strong>${r.colaboradorNome||'-'}</strong><span>${r.status||'Pendente'}</span></div><p><b>${r.tipo||'Folga'}</b> • ${fmtDate(r.dataInicial)} a ${fmtDate(r.dataFinal)}</p>${r.justificativa?`<p>${r.justificativa}</p>`:''}${leadership()&&r.status==='Pendente'?`<div class="request-actions"><button class="approve" data-action="approve" data-id="${r.id}">Aprovar</button><button class="reject" data-action="reject" data-id="${r.id}">Reprovar</button></div>`:''}</div>`}
-function renderRequests(){$('requestCards').innerHTML=visibleRequests().map(requestCard).join('')||'<p class="muted">Nenhuma solicitação encontrada.</p>';document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>decideRequest(b.dataset.id,b.dataset.action))}
-async function submitRequest(){
-  if(!state.selectedOperator)return;const start=$('requestStart').value,end=$('requestEnd').value||start;if(!start){$('requestMessage').textContent='Informe a data.';return}if(!$('requestConfirmIdentity').checked){$('requestMessage').textContent='Confirme sua identificação.';return}
-  await addDoc(collection(db,'solicitacoes_folga'),{colaboradorId:state.selectedOperator.id,colaboradorNome:state.selectedOperator.nome,tipo:$('requestType').value,dataInicial:start,dataFinal:end,justificativa:$('requestReason').value.trim(),status:'Pendente',solicitadoPorUid:state.user.uid,criadoEm:serverTimestamp()});
-  $('requestStart').value='';$('requestEnd').value='';$('requestReason').value='';$('requestConfirmIdentity').checked=false;$('requestMessage').textContent='Solicitação enviada.';toast('Solicitação enviada para análise.')
-}
-async function decideRequest(id,action){const status=action==='approve'?'Aprovada':'Reprovada';let observacao='';if(status==='Reprovada')observacao=prompt('Motivo da reprovação:')||'';await updateDoc(doc(db,'solicitacoes_folga',id),{status,observacao,analisadoPorUid:state.user.uid,analisadoPorNome:state.profile.nome,analisadoEm:serverTimestamp()});toast(`Solicitação ${status.toLowerCase()}.`)}
-
-function renderBank(){
-  const term=normalize($('bankSearch').value);const list=state.team.filter(p=>normalize(p.nome).includes(term)||normalize(p.matricula).includes(term));
-  $('bankTableBody').innerHTML=list.map(p=>{const neg=String(p.saldo||'').trim().startsWith('-');return `<tr><td>${p.nome}</td><td>${p.matricula}</td><td><strong>${p.saldo||'00:00'}</strong></td><td><span class="bank-status ${neg?'negative':''}">${neg?'Negativo':'Controlado'}</span></td></tr>`}).join('')||'<tr><td colspan="4">Sem dados.</td></tr>';
-}
-async function importBank(file){
-  if(!supervisor()){return}const reader=new FileReader();reader.onload=async e=>{try{const wb=XLSX.read(e.target.result,{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});const batch=writeBatch(db);let updated=0;rows.forEach(row=>{const nome=String(row.Nome||row.NOME||row.Colaborador||row.COLABORADOR||'').trim().toUpperCase();const mat=String(row.Matrícula||row.MATRÍCULA||row.Matricula||row.MATRICULA||'').trim();const saldo=String(row.Saldo||row.SALDO||row['Banco de Horas']||row.BANCO||row['SALDO BANCO']||'').trim();const person=state.team.find(p=>(mat&&p.matricula===mat)||(nome&&p.nome===nome));if(person&&saldo){batch.set(doc(db,'colaboradores',person.id),{saldo,ultimaImportacaoBanco:new Date().toISOString()},{merge:true});updated++}});await batch.commit();$('bankMessage').textContent=`Importação concluída: ${updated} colaboradores atualizados.`;$('bankUpdated').textContent=new Date().toLocaleString('pt-BR');toast('Banco de horas atualizado.')}catch(err){console.error(err);$('bankMessage').textContent='Falha ao ler a planilha.'}};reader.readAsArrayBuffer(file)}
-function exportBank(){const rows=[['Nome','Matrícula','Saldo'],...state.team.map(p=>[p.nome,p.matricula,p.saldo||'00:00'])];const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(';')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='banco_horas_equipe_e.csv';a.click()}
-
-function renderVacations(){
-  $('vacationCalendar').innerHTML=months.map((m,i)=>`<div class="month-card"><h3>${m}</h3>${state.vacations.filter(f=>new Date(`${f.inicio}T00:00:00`).getMonth()===i||new Date(`${f.fim}T00:00:00`).getMonth()===i).map(f=>`<div class="vacation-event"><strong>${f.nome.split(' ')[0]}</strong><br>${fmtDate(f.inicio)} a ${fmtDate(f.fim)}</div>`).join('')||'<span class="muted">Sem férias</span>'}</div>`).join('');
-  $('vacationTableBody').innerHTML=state.vacations.map(f=>`<tr><td>${f.nome}</td><td>${fmtDate(f.inicio)}</td><td>${fmtDate(f.fim)}</td><td><span class="active-pill">${f.status}</span></td></tr>`).join('')||'<tr><td colspan="4">Sem registros.</td></tr>';
-}
-
-function bind(){
-  $('loginButton').onclick=login;$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('togglePassword').onclick=()=>{$('password').type=$('password').type==='password'?'text':'password'};$('logoutButton').onclick=()=>signOut(auth);$('menuButton').onclick=()=>$('sidebar').classList.toggle('open');
-  document.querySelectorAll('.nav-item').forEach(n=>n.onclick=()=>openView(n.dataset.view));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openView(b.dataset.go));
-  $('teamSearch').oninput=renderTeam;$('bankSearch').oninput=renderBank;$('seedTeamButton').onclick=seedTeam;$('seedVacationsButton').onclick=seedVacations;$('confirmOperatorButton').onclick=confirmOperator;$('submitRequestButton').onclick=submitRequest;$('bankFile').onchange=e=>e.target.files[0]&&importBank(e.target.files[0]);$('exportBankButton').onclick=exportBank;
-  const d=new Date();$('todayDay').textContent=String(d.getDate()).padStart(2,'0');$('todayMonth').textContent=d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','').toUpperCase();
-}
-
-bind();
-onAuthStateChanged(auth,async user=>{if(!user){state.user=null;state.profile=null;state.selectedOperator=null;showLogin();return}try{state.user=user;state.profile=await loadProfile(user);if(state.profile.perfil==='operador'){const saved=sessionStorage.getItem('equipeESelectedOperator');if(saved)state.selectedOperator=JSON.parse(saved)}showApp()}catch(err){console.error(err);await signOut(auth);showLogin();$('loginMessage').textContent=err.message||'Não foi possível carregar seu perfil.'}});
+  <div id="operatorChooser" class="modal-backdrop hidden"><section class="modal-card"><span class="eyebrow">ACESSO COMPARTILHADO</span><h2>Quem está utilizando o portal?</h2><p class="muted">Selecione seu nome. A identificação será usada nesta sessão.</p><label>Colaborador<select id="operatorSelect"></select></label><label class="confirm-row"><input id="operatorIdentityConfirm" type="checkbox"> Confirmo que sou o colaborador selecionado.</label><button id="confirmOperatorButton" class="primary-button">Continuar</button><p id="operatorChooserMessage" class="message"></p></section></div>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
