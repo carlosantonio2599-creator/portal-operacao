@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function userProfile() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+    function isActive() {
+      return signedIn() && userProfile().ativo == true;
+    }
+    function isSupervisor() {
+      return isActive() && userProfile().perfil == 'supervisor';
+    }
+    function isLeadership() {
+      return isActive() && userProfile().perfil in ['supervisor', 'especialista'];
+    }
+
+    match /usuarios/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    match /colaboradores/{employeeId} {
+      allow read: if isActive();
+      allow create, update, delete: if isSupervisor();
+    }
+
+    match /solicitacoes_folga/{requestId} {
+      allow read: if isActive();
+      allow create: if isActive() && userProfile().perfil == 'operador';
+      allow update: if isLeadership();
+      allow delete: if isSupervisor();
+    }
+
+    match /ferias/{vacationId} {
+      allow read: if isActive();
+      allow create, update, delete: if isSupervisor();
+    }
+  }
+}

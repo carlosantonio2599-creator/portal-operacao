@@ -72,8 +72,17 @@
         </section>
 
         <section id="equipe" class="view">
-          <div class="section-heading"><div><h2>Cadastro da Equipe E</h2><p>Colaboradores sincronizados com o Firestore.</p></div><button id="seedTeamButton" class="primary-button compact supervisor-only hidden">Inicializar equipe</button></div>
-          <div class="panel"><div class="table-toolbar"><input id="teamSearch" type="search" placeholder="Pesquisar por nome, matrícula ou função"><span id="teamCount" class="status-badge neutral">0 registros</span></div><div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Matrícula</th><th>Função</th><th>Categoria</th><th>Saldo</th></tr></thead><tbody id="teamTableBody"></tbody></table></div></div>
+          <div class="section-heading"><div><h2>Gestão da Equipe E</h2><p>Cadastro, pesquisa, filtros e perfil individual dos colaboradores.</p></div><div class="heading-actions"><button id="seedTeamButton" class="ghost-button supervisor-only hidden">Inicializar equipe</button><button id="newEmployeeButton" class="primary-button compact supervisor-only hidden">Novo colaborador</button></div></div>
+          <div class="team-summary" id="teamSummary"></div>
+          <div class="panel">
+            <div class="table-toolbar team-toolbar">
+              <input id="teamSearch" type="search" placeholder="Pesquisar por nome, matrícula, função ou e-mail">
+              <select id="teamCategoryFilter" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+              <select id="teamStatusFilter" aria-label="Filtrar por status"><option value="">Todos os status</option><option>Ativo</option><option>Férias</option><option>Afastado</option><option>Treinamento</option><option>Inativo</option></select>
+              <span id="teamCount" class="status-badge neutral">0 registros</span>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Matrícula</th><th>Função</th><th>Categoria</th><th>Status</th><th>Saldo</th><th>Ações</th></tr></thead><tbody id="teamTableBody"></tbody></table></div>
+          </div>
         </section>
 
         <section id="folgas" class="view">
@@ -99,6 +108,37 @@
     </section>
   </div>
 
+
+  <div id="employeeModal" class="modal-backdrop hidden">
+    <section class="modal-card wide-modal">
+      <div class="modal-header"><div><span class="eyebrow">GESTÃO DA EQUIPE</span><h2 id="employeeModalTitle">Novo colaborador</h2></div><button id="closeEmployeeModal" class="icon-close" type="button" aria-label="Fechar">×</button></div>
+      <div class="form-grid three-columns">
+        <label>Nome completo<input id="employeeName" type="text" maxlength="120"></label>
+        <label>Matrícula<input id="employeeRegistration" type="text" maxlength="20"></label>
+        <label>Função<input id="employeeRole" type="text" maxlength="80"></label>
+        <label>Categoria<select id="employeeCategory"><option>Especialista</option><option>Operador Sênior</option><option>Operador Pleno</option><option>Operador Júnior</option><option>Supervisor</option><option>Outro</option></select></label>
+        <label>Status<select id="employeeStatus"><option>Ativo</option><option>Férias</option><option>Afastado</option><option>Treinamento</option><option>Inativo</option></select></label>
+        <label>Equipe<input id="employeeTeam" type="text" value="E" maxlength="10"></label>
+        <label>Empresa<input id="employeeCompany" type="text" value="Energia Pecém" maxlength="80"></label>
+        <label>Telefone<input id="employeePhone" type="tel" maxlength="30"></label>
+        <label>E-mail<input id="employeeEmail" type="email" maxlength="120"></label>
+        <label>Data de admissão<input id="employeeAdmission" type="date"></label>
+        <label>Saldo banco de horas<input id="employeeBalance" type="text" value="00:00" maxlength="20"></label>
+        <label>Escala<input id="employeeSchedule" type="text" placeholder="Ex.: Turno 8 h / Equipe E" maxlength="80"></label>
+      </div>
+      <label class="block-label">Observações<textarea id="employeeNotes" rows="3" maxlength="500"></textarea></label>
+      <p id="employeeMessage" class="message"></p>
+      <div class="modal-actions"><button id="cancelEmployeeButton" class="ghost-button" type="button">Cancelar</button><button id="saveEmployeeButton" class="primary-button compact" type="button">Salvar colaborador</button></div>
+    </section>
+  </div>
+
+  <div id="employeeProfileModal" class="modal-backdrop hidden">
+    <section class="modal-card profile-modal">
+      <div class="modal-header"><div><span class="eyebrow">PERFIL INDIVIDUAL</span><h2 id="profileName">Colaborador</h2></div><button id="closeProfileModal" class="icon-close" type="button" aria-label="Fechar">×</button></div>
+      <div id="profileContent" class="profile-content"></div>
+      <div class="modal-actions"><button id="profileEditButton" class="primary-button compact supervisor-only hidden" type="button">Editar cadastro</button><button id="profileCloseButton" class="ghost-button" type="button">Fechar</button></div>
+    </section>
+  </div>
   <div id="operatorChooser" class="modal-backdrop hidden"><section class="modal-card"><span class="eyebrow">ACESSO COMPARTILHADO</span><h2>Quem está utilizando o portal?</h2><p class="muted">Selecione seu nome. A identificação será usada nesta sessão.</p><label>Colaborador<select id="operatorSelect"></select></label><label class="confirm-row"><input id="operatorIdentityConfirm" type="checkbox"> Confirmo que sou o colaborador selecionado.</label><button id="confirmOperatorButton" class="primary-button">Continuar</button><p id="operatorChooserMessage" class="message"></p></section></div>
   <div id="toast" class="toast" role="status"></div>
   <script type="module" src="js/app.js"></script>
