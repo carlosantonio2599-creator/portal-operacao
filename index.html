@@ -3,306 +3,241 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escala de Compensação - Equipe E</title>
+<title>Portal Equipe E - Folgas e Férias</title>
 <style>
 :root{
-  --azul:#1017d8;--azul-escuro:#073b63;--azul2:#0d65a8;
-  --laranja:#ff7417;--ciano:#12b8e8;--verde:#15803d;
-  --bg:#f4f7fb;--card:#fff;--linha:#dbe4ee;--texto:#17212f;--muted:#667085;
+  --azul:#1017d8;--azul-escuro:#073b63;--laranja:#ff7417;--verde:#15803d;
+  --vermelho:#b91c1c;--bg:#f4f7fb;--card:#fff;--linha:#dbe4ee;--texto:#17212f;--muted:#667085;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--texto)}
-.topo{background:var(--azul);min-height:130px}
-.logo{display:none}
-.logo img{display:none}
-.hero{position:relative;background:var(--azul);color:#fff;padding:28px 40px;display:flex;align-items:center;min-height:130px}
-.hero:before{content:"";position:absolute;left:0;top:0;border-top:130px solid var(--laranja);border-right:34px solid transparent}
-.hero h1{margin:0;font-size:34px;line-height:1.05;text-transform:uppercase}
-.hero p{margin:8px 0 0;font-size:16px;font-weight:700}
-.faixa{margin:20px auto 16px;max-width:1120px;background:var(--laranja);color:#fff;border-radius:14px;padding:13px 20px;text-align:center;font-size:21px;font-weight:900;text-transform:uppercase}
-.container{max-width:1120px;margin:auto;padding:0 18px 42px}
-.tabs{display:flex;gap:9px;margin-bottom:14px}
-.tab{border:0;border-radius:10px;padding:11px 16px;font-weight:800;background:#fff;color:var(--azul-escuro);cursor:pointer}
-.tab.active{background:var(--azul-escuro);color:#fff}
-.view{display:none}.view.active{display:block}
-.card{background:#fff;border:1px solid var(--linha);border-radius:18px;padding:18px;box-shadow:0 3px 12px #0000000d}
-.section-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.icon{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:3px solid var(--laranja);color:var(--laranja);font-size:24px;font-weight:900}
-.section-head h2{margin:0;color:var(--azul-escuro);font-size:23px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;font-weight:800}
+input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:white}
 label{display:block;font-size:12px;font-weight:800;color:#52606d;margin-bottom:5px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
+.hidden{display:none!important}
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:min(430px,100%);background:white;border:1px solid var(--linha);border-radius:18px;padding:24px;box-shadow:0 14px 35px #0002}
+.login-card h1{margin:0 0 6px;color:var(--azul-escuro);font-size:26px}
+.login-msg{color:var(--vermelho);font-size:13px;min-height:18px}
+.topbar{background:var(--azul-escuro);color:#fff;padding:9px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hero{background:var(--azul);color:#fff;padding:28px 40px;position:relative}
+.hero:before{content:"";position:absolute;left:0;top:0;border-top:130px solid var(--laranja);border-right:34px solid transparent}
+.hero h1{margin:0;font-size:32px;text-transform:uppercase}
+.hero p{margin:7px 0 0;font-weight:700}
+.faixa{margin:20px auto 16px;max-width:1120px;background:var(--laranja);color:#fff;border-radius:14px;padding:13px 20px;text-align:center;font-size:20px;font-weight:900;text-transform:uppercase}
+.container{max-width:1120px;margin:auto;padding:0 18px 40px}
+.tabs{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+.tab{background:#fff;color:var(--azul-escuro)}
+.tab.active{background:var(--azul-escuro);color:#fff}
+.card{background:#fff;border:1px solid var(--linha);border-radius:18px;padding:18px;box-shadow:0 3px 12px #0000000d}
+.view{display:none}.view.active{display:block}
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.section-head h2{margin:0;color:var(--azul-escuro)}
+.icon{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--laranja);color:var(--laranja);font-size:22px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-button{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
-.btn-edit{background:#2563eb;color:#fff}.btn-blue{background:var(--azul-escuro);color:#fff}.btn-green{background:var(--verde);color:#fff}.btn-orange{background:var(--laranja);color:#fff}.btn-gray{background:#64748b;color:#fff}.btn-red{background:#b91c1c;color:#fff}
+.btn-blue{background:var(--azul-escuro);color:#fff}
+.btn-green{background:var(--verde);color:#fff}
+.btn-orange{background:var(--laranja);color:#fff}
+.btn-red{background:var(--vermelho);color:#fff}
+.btn-gray{background:#64748b;color:#fff}
+.btn-edit{background:#2563eb;color:#fff}
+.periodos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.periodo input{position:absolute;opacity:0}
+.periodo span{display:flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:var(--azul-escuro);font-weight:800}
+.periodo input:checked+span{background:var(--azul-escuro);color:white;border-color:var(--azul-escuro)}
 .filters{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
 table{width:100%;border-collapse:collapse;margin-top:14px}
 th{background:#dceaf6;color:#082f49;padding:11px 9px;text-align:left;font-size:13px}
 td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 .badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900}
-.aprovada{background:#dcfce7;color:#166534}.pendente{background:#fef3c7;color:#92400e}.reprovada{background:#fee2e2;color:#991b1b}
-.lembrete{display:none!important}
-.lembrete div{display:none!important}
-.lembrete div:last-child{display:none!important}
-.rodape{display:none!important}
+.aprovada,.concluída{background:#dcfce7;color:#166534}
+.pendente,.programada{background:#fef3c7;color:#92400e}
+.reprovada,.cancelada{background:#fee2e2;color:#991b1b}
+.resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.mini-card{background:#f8fbfe;border:1px solid var(--linha);border-radius:12px;padding:12px}
+.numero{font-size:25px;font-weight:900;color:var(--azul-escuro)}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}
+.modal-box{width:min(620px,100%);background:#fff;border-radius:18px;padding:20px}
+.modal-head{display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{margin:0;color:var(--azul-escuro)}
 @media(max-width:760px){
-  .topo{min-height:auto}
-  .logo{display:none}
-  .hero{padding:20px}.hero:before{display:none}.hero h1{font-size:25px}
-  .grid,.filters{grid-template-columns:1fr}
-  table,thead,tbody,tr,th,td{display:block;width:100%} th{display:none}
+  .hero{padding:20px}.hero:before{display:none}.hero h1{font-size:24px}
+  .grid,.grid4,.filters,.resumo{grid-template-columns:1fr}
+  table,thead,tbody,tr,th,td{display:block;width:100%}th{display:none}
   tr{border:1px solid var(--linha);border-radius:12px;margin:10px 0;overflow:hidden}
   td:before{content:attr(data-label);display:block;font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
 }
-
-.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}
-.modal.hidden{display:none}
-.modal-box{width:min(620px,100%);background:#fff;border-radius:18px;padding:20px;box-shadow:0 22px 50px #0005}
-.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.modal-head h3{margin:0;color:var(--azul-escuro);font-size:22px}
-.modal-close{width:38px;height:38px;border-radius:50%;background:#eef3f8;color:var(--azul-escuro);font-size:20px;padding:0}
-.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:620px){.edit-grid{grid-template-columns:1fr}}
-
-
-.periodo-opcoes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.periodo-btn{margin:0;cursor:pointer}
-.periodo-btn input{position:absolute;opacity:0;pointer-events:none}
-.periodo-btn span{
-  display:flex;align-items:center;justify-content:center;
-  min-height:44px;border:1px solid #cbd5e1;border-radius:10px;
-  background:#fff;color:var(--azul-escuro);font-weight:800;
-  transition:.15s ease;
-}
-.periodo-btn input:checked + span{
-  background:var(--azul-escuro);color:#fff;border-color:var(--azul-escuro);
-  box-shadow:0 3px 8px #073b6326;
-}
-@media(max-width:520px){.periodo-opcoes{grid-template-columns:1fr}}
-
-
-.ferias-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px}
-.resumo-ferias{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.resumo-ferias .mini-card{background:#f8fbfe;border:1px solid var(--linha);border-radius:12px;padding:12px}
-.resumo-ferias .numero{font-size:25px;font-weight:900;color:var(--azul-escuro)}
-@media(max-width:760px){
-  .ferias-form,.resumo-ferias{grid-template-columns:1fr}
-}
-
 @media print{
- @page{size:A4 landscape;margin:9mm}
- .no-print,#pedido,.tabs{display:none!important}
- body{background:#fff}
- .topo{display:block!important;min-height:92px!important}
- .logo{display:none!important}
- .hero{padding:16px 24px!important}.hero:before{border-top-width:92px!important}
- .hero h1{font-size:25px!important}.hero p{font-size:12px!important}
- .faixa{margin:10px 0!important;border-radius:9px!important;font-size:15px!important;padding:9px!important}
- .container{max-width:none!important;padding:0!important}
- #aprovacao{display:block!important}
- .card{border:0!important;box-shadow:none!important;padding:0!important}
- .section-head{display:none!important}
- table{display:table!important;table-layout:fixed!important;margin:0!important}
- thead{display:table-header-group!important}tbody{display:table-row-group!important}tr{display:table-row!important}
- th,td{display:table-cell!important}
- td:before{display:none!important}
- th{font-size:10px!important;padding:7px 6px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- td{font-size:9.5px!important;padding:7px 6px!important}
- th:nth-child(1),td:nth-child(1){width:41%} th:nth-child(2),td:nth-child(2){width:13%} th:nth-child(3),td:nth-child(3){width:14%} th:nth-child(4),td:nth-child(4){width:18%} th:nth-child(5),td:nth-child(5){width:14%}
- th:nth-child(6),td:nth-child(6){display:none!important}
- .badge{font-size:8.5px!important;padding:4px 7px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 landscape;margin:9mm}
+  .no-print,#pedido,.tabs,.topbar{display:none!important}
+  body{background:#fff}.container{max-width:none;padding:0}
+  .card{border:0;box-shadow:none;padding:0}
+  .section-head{display:none}
+  table{display:table!important;table-layout:fixed!important}
+  thead{display:table-header-group!important}tbody{display:table-row-group!important}tr{display:table-row!important}
+  th,td{display:table-cell!important;font-size:10px!important;padding:7px 6px!important}
+  td:before{display:none!important}
+  th:last-child,td:last-child{display:none!important}
 }
 </style>
 </head>
 <body>
 
-<div id="loginFirebase" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f7fb;padding:20px">
-  <div style="width:min(430px,100%);background:white;border:1px solid #dbe4ee;border-radius:18px;padding:24px;box-shadow:0 14px 35px #0002">
-    <h2 style="margin:0 0 6px;color:#073b63">Portal Equipe E</h2>
-    <p style="margin:0 0 18px;color:#667085">Entre com uma das contas cadastradas no Firebase.</p>
+<section id="loginArea" class="login">
+  <div class="login-card">
+    <h1>Portal Equipe E</h1>
+    <p style="color:var(--muted)">Folgas e férias com banco de dados compartilhado.</p>
     <label>E-mail</label>
-    <input id="loginEmail" type="email" placeholder="seu-email@exemplo.com">
+    <input id="loginEmail" type="email" autocomplete="username">
     <div style="height:10px"></div>
     <label>Senha</label>
-    <input id="loginSenha" type="password" placeholder="Sua senha">
+    <input id="loginSenha" type="password" autocomplete="current-password">
     <button id="btnEntrar" class="btn-blue" style="width:100%;margin-top:14px">Entrar</button>
-    <p id="loginMsg" style="color:#b91c1c;font-size:13px"></p>
-  </div>
-</div>
-
-<div id="appFirebase" style="display:none">
-<div class="no-print" style="background:#073b63;color:white;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px">
-  <span id="usuarioLogado">Usuário</span>
-  <button id="btnSair" class="btn-gray" style="padding:7px 12px">Sair</button>
-</div>
-<div class="topo">
-  <div class="hero"><div><h1>Pedido e Aprovação de Folgas</h1><p>Equipe E - Solicitações, análise e impressão das folgas aprovadas</p></div></div>
-</div>
-<div class="faixa">Gestão de Folgas - Equipe E</div>
-<div class="container">
-<nav class="tabs no-print">
-  <button class="tab active" data-view="pedido">Pedido de Folga</button>
-  <button class="tab" data-view="aprovacao">Aprovação</button>
-  <button class="tab" data-view="ferias">Férias</button>
-</nav>
-
-<section id="pedido" class="view active">
- <div class="card">
-  <div class="section-head"><div class="icon">+</div><div><h2>Solicitar folga</h2><small>Selecione uma única data para cada solicitação.</small></div></div>
-  <div class="grid">
-   <div><label>Colaborador</label>
-<div style="display:flex;gap:8px">
-<input id="nomeNovo" type="text" placeholder="Digite ou selecione um colaborador" list="listaColaboradores" style="flex:1">
-<datalist id="listaColaboradores"></datalist>
-<button type="button" class="btn-blue" id="adicionarColaborador">+</button>
-</div></div>
-   <div><label>Data da folga</label><input id="data" type="date"></div>
-   
-<div>
-  <label>Período da folga</label>
-  <div class="periodo-opcoes">
-    <label class="periodo-btn">
-      <input type="radio" name="periodoFolga" value="Manhã" checked>
-      <span>Manhã</span>
-    </label>
-    <label class="periodo-btn">
-      <input type="radio" name="periodoFolga" value="Tarde">
-      <span>Tarde</span>
-    </label>
-    <label class="periodo-btn">
-      <input type="radio" name="periodoFolga" value="Noite">
-      <span>Noite</span>
-    </label>
-  </div>
-</div>
-
-  </div>
-  <div class="grid" style="margin-top:12px">
-   
-   <div style="grid-column:1 / -1"><label>Justificativa</label><textarea id="just" rows="3"></textarea></div>
-  </div>
-  <div class="actions no-print"><button class="btn-green" id="enviar">Enviar solicitação</button><button class="btn-gray" id="limpar">Limpar</button></div>
- </div>
-</section>
-
-<section id="aprovacao" class="view">
- <div class="card">
-  <div class="section-head"><div class="icon" style="border-color:var(--azul);color:var(--azul)">✓</div><div><h2>Folgas para análise</h2></div></div>
-  <div class="filters no-print">
-   <div><label>Data inicial</label><input id="ini" type="date"></div>
-   <div><label>Data final</label><input id="fim" type="date"></div>
-   <div class="actions" style="margin:0"><button class="btn-blue" id="buscar">Pesquisar</button><button class="btn-orange" id="imprimir">Imprimir aprovadas</button><button class="btn-red" id="excluir">Excluir reprovadas</button></div>
-  </div>
-  <table>
-   <thead><tr><th>Colaborador</th><th>Data</th><th>Turno</th><th>Folga</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
-   <tbody id="tbody"></tbody>
-  </table>
- </div>
-</section>
-
-
-<section id="ferias" class="view">
-  <div class="card">
-    <div class="section-head">
-      <div class="icon" style="border-color:var(--laranja);color:var(--laranja)">☀</div>
-      <div><h2>Planejamento de Férias</h2></div>
-    </div>
-
-    <div class="resumo-ferias">
-      <div class="mini-card"><div class="numero" id="feriasTotal">0</div><div>Registros de férias</div></div>
-      <div class="mini-card"><div class="numero" id="feriasProgramadas">0</div><div>Programadas</div></div>
-      <div class="mini-card"><div class="numero" id="feriasConcluidas">0</div><div>Concluídas</div></div>
-    </div>
-
-    <div class="ferias-form no-print">
-      <div>
-        <label>Colaborador</label>
-        <input id="feriasNome" type="text" list="listaColaboradoresFerias" placeholder="Digite ou selecione o colaborador">
-        <datalist id="listaColaboradoresFerias"></datalist>
-      </div>
-      <div>
-        <label>Início</label>
-        <input id="feriasInicio" type="date">
-      </div>
-      <div>
-        <label>Fim</label>
-        <input id="feriasFim" type="date">
-      </div>
-      <div>
-        <label>Status</label>
-        <select id="feriasStatus">
-          <option>Programada</option>
-          <option>Aprovada</option>
-          <option>Concluída</option>
-          <option>Cancelada</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="actions no-print">
-      <button class="btn-green" id="salvarFerias">Inserir férias</button>
-      <button class="btn-gray" id="limparFerias">Limpar</button>
-      <button class="btn-orange" id="imprimirFerias">Imprimir férias</button>
-    </div>
-
-    <table id="tabelaFerias">
-      <thead>
-        <tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Dias</th><th>Status</th><th class="no-print">Ações</th></tr>
-      </thead>
-      <tbody id="tbodyFerias"></tbody>
-    </table>
+    <p id="loginMsg" class="login-msg"></p>
   </div>
 </section>
 
+<div id="appArea" class="hidden">
+  <div class="topbar no-print">
+    <span id="usuarioLogado">Usuário</span>
+    <button id="btnSair" class="btn-gray">Sair</button>
+  </div>
+
+  <header class="hero">
+    <h1>Pedido e Aprovação de Folgas</h1>
+    <p>Equipe E - Solicitações, análise e planejamento de férias</p>
+  </header>
+
+  <div class="faixa">Gestão da Equipe E</div>
+
+  <main class="container">
+    <nav class="tabs no-print">
+      <button class="tab active" data-view="pedido">Pedido de Folga</button>
+      <button class="tab" data-view="aprovacao">Aprovação</button>
+      <button class="tab" data-view="ferias">Férias</button>
+      <button class="tab supervisor-only" data-view="colaboradores">Colaboradores</button>
+    </nav>
+
+    <section id="pedido" class="view active">
+      <div class="card">
+        <div class="section-head"><div class="icon">+</div><h2>Solicitar folga</h2></div>
+        <div class="grid">
+          <div>
+            <label>Colaborador</label>
+            <input id="folgaNome" list="listaColaboradores" placeholder="Selecione o colaborador">
+            <datalist id="listaColaboradores"></datalist>
+          </div>
+          <div>
+            <label>Data da folga</label>
+            <input id="folgaData" type="date">
+          </div>
+          <div>
+            <label>Período</label>
+            <div class="periodos">
+              <label class="periodo"><input type="radio" name="periodoFolga" value="Manhã" checked><span>Manhã</span></label>
+              <label class="periodo"><input type="radio" name="periodoFolga" value="Tarde"><span>Tarde</span></label>
+              <label class="periodo"><input type="radio" name="periodoFolga" value="Noite"><span>Noite</span></label>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label>Justificativa</label>
+          <textarea id="folgaJustificativa" rows="3"></textarea>
+        </div>
+        <div class="actions no-print">
+          <button id="btnEnviarFolga" class="btn-green">Enviar solicitação</button>
+          <button id="btnLimparFolga" class="btn-gray">Limpar</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="aprovacao" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">✓</div><h2>Folgas para análise</h2></div>
+        <div class="filters no-print">
+          <div><label>Data inicial</label><input id="filtroInicio" type="date"></div>
+          <div><label>Data final</label><input id="filtroFim" type="date"></div>
+          <div class="actions" style="margin:0">
+            <button id="btnPesquisarFolgas" class="btn-blue">Pesquisar</button>
+            <button id="btnImprimirFolgas" class="btn-orange">Imprimir aprovadas</button>
+            <button id="btnExcluirReprovadas" class="btn-red supervisor-only">Excluir reprovadas</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Colaborador</th><th>Data</th><th>Período</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+          <tbody id="tbodyFolgas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ferias" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">☀</div><h2>Planejamento de Férias</h2></div>
+        <div class="resumo">
+          <div class="mini-card"><div id="feriasTotal" class="numero">0</div><div>Registros</div></div>
+          <div class="mini-card"><div id="feriasProgramadas" class="numero">0</div><div>Programadas</div></div>
+          <div class="mini-card"><div id="feriasConcluidas" class="numero">0</div><div>Concluídas</div></div>
+        </div>
+        <div id="formFerias" class="grid4 no-print">
+          <div><label>Colaborador</label><input id="feriasNome" list="listaColaboradoresFerias"><datalist id="listaColaboradoresFerias"></datalist></div>
+          <div><label>Início</label><input id="feriasInicio" type="date"></div>
+          <div><label>Fim</label><input id="feriasFim" type="date"></div>
+          <div><label>Status</label><select id="feriasStatus"><option>Programada</option><option>Aprovada</option><option>Concluída</option><option>Cancelada</option></select></div>
+        </div>
+        <div class="actions no-print">
+          <button id="btnSalvarFerias" class="btn-green">Inserir férias</button>
+          <button id="btnLimparFerias" class="btn-gray">Limpar</button>
+          <button id="btnImprimirFerias" class="btn-orange">Imprimir férias</button>
+        </div>
+        <table>
+          <thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Dias</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+          <tbody id="tbodyFerias"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="colaboradores" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">👥</div><h2>Cadastro de Colaboradores</h2></div>
+        <div class="grid no-print">
+          <div><label>Nome</label><input id="colaboradorNome"></div>
+          <div><label>Matrícula</label><input id="colaboradorMatricula"></div>
+          <div><label>Função</label><input id="colaboradorFuncao"></div>
+        </div>
+        <div class="actions no-print">
+          <button id="btnSalvarColaborador" class="btn-green">Adicionar colaborador</button>
+          <button id="btnLimparColaborador" class="btn-gray">Limpar</button>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>Matrícula</th><th>Função</th><th class="no-print">Ações</th></tr></thead>
+          <tbody id="tbodyColaboradores"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 </div>
 
-<div id="modalEditar" class="modal hidden no-print" aria-hidden="true">
+<div id="modalFolga" class="modal hidden no-print">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>Editar folga aprovada</h3>
-      <button class="modal-close" id="fecharModal" type="button">×</button>
-    </div>
-    <div class="edit-grid">
-      <div>
-        <label for="editNome">Colaborador</label>
-        <select id="editNome"></select>
-      </div>
-      <div>
-        <label for="editData">Data</label>
-        <input id="editData" type="date">
-      </div>
-      <div>
-        <label for="editTurno">Turno</label>
-        <select id="editTurno">
-<option>Manhã</option>
-<option>Tarde</option>
-<option>Noite</option>
-</select>
-      </div>
-      <div>
-        <label for="editTipo">Tipo</label>
-        <select id="editTipo">
-          <option>Compensação</option>
-          <option>Banco de horas</option>
-          <option>Folga programada</option>
-        </select>
-      </div>
+    <div class="modal-head"><h3>Editar folga aprovada</h3><button id="btnFecharModal" class="btn-gray">×</button></div>
+    <div class="grid" style="margin-top:14px">
+      <div><label>Colaborador</label><select id="editFolgaNome"></select></div>
+      <div><label>Data</label><input id="editFolgaData" type="date"></div>
+      <div><label>Período</label><select id="editFolgaPeriodo"><option>Manhã</option><option>Tarde</option><option>Noite</option></select></div>
     </div>
     <div class="actions">
-      <button class="btn-green" id="salvarEdicao" type="button">Salvar alteração</button>
-      <button class="btn-gray" id="cancelarEdicao" type="button">Cancelar</button>
+      <button id="btnSalvarEdicaoFolga" class="btn-green">Salvar alteração</button>
+      <button id="btnCancelarEdicaoFolga" class="btn-gray">Cancelar</button>
     </div>
-    <p style="margin:10px 0 0;color:var(--muted);font-size:12px">
-      A edição mantém a folga com status <b>Aprovada</b>.
-    </p>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc,
   onSnapshot, serverTimestamp, query, orderBy
@@ -322,375 +257,335 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
-let perfilAtual = null;
-let usuarioAtual = null;
-let folgasCarregadas = false;
-let feriasCarregadas = false;
+const state = {
+  user: null,
+  profile: null,
+  colaboradores: [],
+  folgas: [],
+  ferias: [],
+  folgaEditId: null,
+  feriasEditId: null,
+  unsubscribers: []
+};
 
-const lista=[{nome:'FRANCISCO HELTON MENDES VASCONCELOS',data:'11/07/2026',turno:'1º Tarde',tipo:'Compensação',status:'Aprovada'},
-{nome:'IZAQUIEL SILVA MAGALHAES',data:'11/07/2026',turno:'1º Tarde',tipo:'Compensação',status:'Aprovada'},
-{nome:'DAVID FERNANDES DA SILVA',data:'14/07/2026',turno:'2º Noite',tipo:'Compensação',status:'Aprovada'},
-{nome:'ALVARO SOUZA DA SILVA',data:'13/07/2026',turno:'Não informado',tipo:'Compensação',status:'Aprovada'},
-{nome:'ALVARO SOUZA DA SILVA',data:'14/07/2026',turno:'Não informado',tipo:'Compensação',status:'Aprovada'},
-{nome:'ALEXANDRE MODESTO DE OLIVEIRA',data:'19/07/2026',turno:'1º Manhã',tipo:'Compensação',status:'Aprovada'},
-{nome:'ALVARO SOUZA DA SILVA',data:'19/07/2026',turno:'Não informado',tipo:'Compensação',status:'Aprovada'},
-{nome:'DAVID FERNANDES DA SILVA',data:'22/07/2026',turno:'2º Tarde',tipo:'Compensação',status:'Aprovada'},
-{nome:'IZAQUIEL SILVA MAGALHAES',data:'24/07/2026',turno:'2º Noite',tipo:'Compensação',status:'Aprovada'},
-{nome:'IZAQUIEL SILVA MAGALHAES',data:'01/08/2026',turno:'2º Tarde',tipo:'Compensação',status:'Aprovada'},
-{nome:'IZAQUIEL SILVA MAGALHAES',data:'08/08/2026',turno:'1º Manhã',tipo:'Compensação',status:'Aprovada'},
-{nome:'IZAQUIEL SILVA MAGALHAES',data:'09/08/2026',turno:'2º turno',tipo:'Compensação',status:'Aprovada'},
-{nome:'JARDIEL LOPES RODRIGUES',data:'06/12/2026',turno:'1º Manhã',tipo:'Compensação',status:'Aprovada'}];
+const $ = id => document.getElementById(id);
+const isSupervisor = () => state.profile?.perfil === "supervisor";
+const isGestor = () => ["supervisor","especialista"].includes(state.profile?.perfil);
+const formatDate = iso => iso ? new Date(iso+"T00:00:00").toLocaleDateString("pt-BR") : "";
+const daysBetween = (a,b) => Math.floor((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/86400000)+1;
 
-const ferias = JSON.parse(localStorage.getItem('feriasEquipeE_2026') || 'null') || [
-  {nome:'ALEXANDRE MODESTO DE OLIVEIRA',inicio:'2026-01-10',fim:'2026-01-30',status:'Concluída'},
-  {nome:'JARDIEL LOPES RODRIGUES',inicio:'2026-03-01',fim:'2026-03-26',status:'Concluída'},
-  {nome:'FRANCISCO HELTON MENDES VASCONCELOS',inicio:'2026-07-19',fim:'2026-08-07',status:'Programada'},
-  {nome:'ALVARO SOUZA DA SILVA',inicio:'2026-08-08',fim:'2026-08-27',status:'Programada'},
-  {nome:'RAIMUNDO SOARES RAMOS NETO',inicio:'2026-10-03',fim:'2026-10-22',status:'Programada'},
-  {nome:'IZAQUIEL SILVA MAGALHAES',inicio:'2026-11-27',fim:'2026-12-15',status:'Programada'}
-];
-
-function salvarBaseFerias(){}
-
-function diasFerias(inicio,fim){
-  if(!inicio||!fim)return 0;
-  return Math.floor((new Date(fim+'T00:00:00')-new Date(inicio+'T00:00:00'))/86400000)+1;
+function setView(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  $(id).classList.add("active");
+  document.querySelector(`.tab[data-view="${id}"]`)?.classList.add("active");
 }
 
-function classeStatusFerias(status){
-  if(status==='Concluída'||status==='Aprovada') return 'aprovada';
-  if(status==='Cancelada') return 'reprovada';
-  return 'pendente';
+function applyPermissions(){
+  document.querySelectorAll(".supervisor-only").forEach(el=>el.classList.toggle("hidden",!isSupervisor()));
+  $("formFerias").classList.toggle("hidden",!isSupervisor());
+  $("btnSalvarFerias").classList.toggle("hidden",!isSupervisor());
+  $("btnLimparFerias").classList.toggle("hidden",!isSupervisor());
+}
+
+function showLogin(message=""){
+  $("loginArea").classList.remove("hidden");
+  $("appArea").classList.add("hidden");
+  $("loginMsg").textContent=message;
+}
+
+function showApp(){
+  $("loginArea").classList.add("hidden");
+  $("appArea").classList.remove("hidden");
+  $("usuarioLogado").textContent=`${state.profile.nome || state.user.email} • ${state.profile.perfil}`;
+  applyPermissions();
+}
+
+async function loadProfile(user){
+  const ref=doc(db,"usuarios",user.uid);
+  const snap=await getDoc(ref);
+  if(!snap.exists()) throw new Error(`Perfil não encontrado em usuarios/${user.uid}`);
+  const profile=snap.data();
+  if(profile.ativo!==true) throw new Error("Usuário desativado.");
+  return profile;
+}
+
+function subscribeData(){
+  state.unsubscribers.forEach(fn=>fn());
+  state.unsubscribers=[];
+
+  state.unsubscribers.push(
+    onSnapshot(query(collection(db,"colaboradores"),orderBy("nome","asc")),snap=>{
+      state.colaboradores=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderCollaborators();
+      populateCollaborators();
+    },err=>alert("Erro ao carregar colaboradores: "+err.message))
+  );
+
+  state.unsubscribers.push(
+    onSnapshot(query(collection(db,"solicitacoes_folga"),orderBy("data","asc")),snap=>{
+      state.folgas=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderFolgas();
+    },err=>alert("Erro ao carregar folgas: "+err.message))
+  );
+
+  state.unsubscribers.push(
+    onSnapshot(query(collection(db,"ferias"),orderBy("inicio","asc")),snap=>{
+      state.ferias=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderFerias();
+      populateCollaborators();
+    },err=>alert("Erro ao carregar férias: "+err.message))
+  );
+}
+
+function populateCollaborators(){
+  const names=[...new Set([
+    ...state.colaboradores.map(c=>c.nome),
+    ...state.folgas.map(f=>f.nome),
+    ...state.ferias.map(f=>f.nome)
+  ].filter(Boolean))].sort();
+
+  $("listaColaboradores").innerHTML=names.map(n=>`<option value="${n}">`).join("");
+  $("listaColaboradoresFerias").innerHTML=names.map(n=>`<option value="${n}">`).join("");
+  $("editFolgaNome").innerHTML=names.map(n=>`<option>${n}</option>`).join("");
+}
+
+function statusBadge(status){
+  return `<span class="badge ${String(status).toLowerCase()}">${status}</span>`;
+}
+
+function renderFolgas(list=state.folgas){
+  $("tbodyFolgas").innerHTML=list.map(f=>{
+    const actions=isGestor()
+      ? `${f.status==="Aprovada" ? `<button class="btn-edit" data-action="edit-folga" data-id="${f.id}">Editar</button>` : ""}
+         <button class="btn-green" data-action="status-folga" data-status="Aprovada" data-id="${f.id}">Aprovar</button>
+         <button class="btn-red" data-action="status-folga" data-status="Reprovada" data-id="${f.id}">Reprovar</button>`
+      : "";
+    return `<tr>
+      <td data-label="Colaborador">${f.nome||""}</td>
+      <td data-label="Data">${formatDate(f.data)}</td>
+      <td data-label="Período">${f.periodo||f.turno||""}</td>
+      <td data-label="Status">${statusBadge(f.status||"Pendente")}</td>
+      <td data-label="Ações" class="no-print">${actions}</td>
+    </tr>`;
+  }).join("");
 }
 
 function renderFerias(){
-  const nomes=[...new Set([...lista.map(r=>r.nome),...ferias.map(f=>f.nome)])].sort();
-  document.getElementById('listaColaboradoresFerias').innerHTML=nomes.map(n=>`<option value="${n}">`).join('');
+  $("feriasTotal").textContent=state.ferias.length;
+  $("feriasProgramadas").textContent=state.ferias.filter(f=>["Programada","Aprovada"].includes(f.status)).length;
+  $("feriasConcluidas").textContent=state.ferias.filter(f=>f.status==="Concluída").length;
 
-  document.getElementById('feriasTotal').textContent=ferias.length;
-  document.getElementById('feriasProgramadas').textContent=ferias.filter(f=>f.status==='Programada'||f.status==='Aprovada').length;
-  document.getElementById('feriasConcluidas').textContent=ferias.filter(f=>f.status==='Concluída').length;
-
-  document.getElementById('tbodyFerias').innerHTML=ferias
-    .slice()
-    .sort((a,b)=>a.inicio.localeCompare(b.inicio))
-    .map(f=>{
-      const i=ferias.indexOf(f);
-      return `<tr>
-        <td data-label="Colaborador">${f.nome}</td>
-        <td data-label="Início">${new Date(f.inicio+'T00:00:00').toLocaleDateString('pt-BR')}</td>
-        <td data-label="Fim">${new Date(f.fim+'T00:00:00').toLocaleDateString('pt-BR')}</td>
-        <td data-label="Dias">${diasFerias(f.inicio,f.fim)}</td>
-        <td data-label="Status"><span class="badge ${classeStatusFerias(f.status)}">${f.status}</span></td>
-        <td data-label="Ações" class="no-print">
-          <button class="btn-edit" onclick="editarFerias(${i})">Editar</button>
-          <button class="btn-red" onclick="excluirFerias(${i})">Excluir</button>
-        </td>
-      </tr>`;
-    }).join('');
+  $("tbodyFerias").innerHTML=state.ferias.map(f=>`
+    <tr>
+      <td data-label="Colaborador">${f.nome||""}</td>
+      <td data-label="Início">${formatDate(f.inicio)}</td>
+      <td data-label="Fim">${formatDate(f.fim)}</td>
+      <td data-label="Dias">${daysBetween(f.inicio,f.fim)}</td>
+      <td data-label="Status">${statusBadge(f.status||"Programada")}</td>
+      <td data-label="Ações" class="no-print">
+        ${isSupervisor()?`
+          <button class="btn-edit" data-action="edit-ferias" data-id="${f.id}">Editar</button>
+          <button class="btn-red" data-action="delete-ferias" data-id="${f.id}">Excluir</button>`:""}
+      </td>
+    </tr>`).join("");
 }
 
-let indiceFeriasEdicao=null;
-
-document.getElementById('salvarFerias').onclick=async()=>{
-  if(perfilAtual!=='supervisor'){alert('Somente o Supervisor pode inserir ou editar férias.');return;}
-  const nome=document.getElementById('feriasNome').value.trim().toUpperCase();
-  const inicio=document.getElementById('feriasInicio').value;
-  const fim=document.getElementById('feriasFim').value;
-  const status=document.getElementById('feriasStatus').value;
-  if(!nome||!inicio||!fim){alert('Informe colaborador, início e fim das férias.');return;}
-  if(fim<inicio){alert('A data final não pode ser anterior à data inicial.');return;}
-
-  const dados={nome,inicio,fim,status,equipe:'E',alteradoPor:usuarioAtual.uid,alteradoEm:serverTimestamp()};
-  if(indiceFeriasEdicao===null){
-    await addDoc(collection(db,'ferias'),{...dados,criadoPor:usuarioAtual.uid,criadoEm:serverTimestamp()});
-  }else{
-    await updateDoc(doc(db,'ferias',ferias[indiceFeriasEdicao].id),dados);
-  }
-  limparFormularioFerias();
+function renderCollaborators(){
+  $("tbodyColaboradores").innerHTML=state.colaboradores.map(c=>`
+    <tr>
+      <td data-label="Nome">${c.nome||""}</td>
+      <td data-label="Matrícula">${c.matricula||""}</td>
+      <td data-label="Função">${c.funcao||""}</td>
+      <td data-label="Ações" class="no-print">
+        <button class="btn-red" data-action="delete-colaborador" data-id="${c.id}">Excluir</button>
+      </td>
+    </tr>`).join("");
 }
 
-function limparFormularioFerias(){
-  indiceFeriasEdicao=null;
-  document.getElementById('feriasNome').value='';
-  document.getElementById('feriasInicio').value='';
-  document.getElementById('feriasFim').value='';
-  document.getElementById('feriasStatus').value='Programada';
-  document.getElementById('salvarFerias').textContent='Inserir férias';
-}
-
-document.getElementById('limparFerias').onclick=limparFormularioFerias;
-
-function editarFerias(i){
-  const f=ferias[i];
-  indiceFeriasEdicao=i;
-  document.getElementById('feriasNome').value=f.nome;
-  document.getElementById('feriasInicio').value=f.inicio;
-  document.getElementById('feriasFim').value=f.fim;
-  document.getElementById('feriasStatus').value=f.status;
-  document.getElementById('salvarFerias').textContent='Salvar alteração';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-async function excluirFerias(i){
-  if(perfilAtual!=='supervisor'){alert('Somente o Supervisor pode excluir férias.');return;}
-  if(!confirm('Deseja excluir este registro de férias?'))return;
-  await deleteDoc(doc(db,'ferias',ferias[i].id));
-}
-
-document.getElementById('imprimirFerias').onclick=()=>{
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('ferias').classList.add('active');
-  window.print();
-};
-
-const fmt=d=>{if(!d)return'';const iso=d.includes('/')?d.split('/').reverse().join('-'):d;return new Date(iso+'T00:00:00').toLocaleDateString('pt-BR')};
-function badge(s){return `<span class="badge ${s.toLowerCase()}">${s}</span>`}
-function render(data=lista){
- document.getElementById('tbody').innerHTML=data.map((r)=>{
-   const i=lista.indexOf(r);
-   const editar=r.status==='Aprovada'
-     ? `<button class="btn-edit" onclick="abrirEdicao(${i})">Editar</button>`
-     : '';
-   return `<tr>
- <td data-label="Colaborador">${r.nome}</td><td data-label="Data">${fmt(r.data)}</td><td data-label="Turno">${r.turno}</td>
- <td data-label="Tipo">${r.tipo}</td><td data-label="Status">${badge(r.status)}</td>
- <td data-label="Ações" class="no-print">${editar} <button class="btn-green" onclick="mudar(${i},'Aprovada')">Aprovar</button> <button class="btn-red" onclick="mudar(${i},'Reprovada')">Reprovar</button></td></tr>`;
- }).join('');
-}
-async function mudar(i,s){
-  const r=lista[i];
-  if(!r?.id)return;
-  await updateDoc(doc(db,'solicitacoes_folga',r.id),{
-    status:s,
-    analisadoPor:usuarioAtual.uid,
-    analisadoEm:serverTimestamp()
-  });
-}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.view).classList.add('active')})
-document.getElementById('enviar').onclick=async()=>{
-  const data=document.getElementById('data').value;
-  const nome=document.getElementById('nomeNovo').value.trim().toUpperCase();
-  const periodo=(document.querySelector('input[name="periodoFolga"]:checked')||{}).value||'Manhã';
-  const justificativa=document.getElementById('just').value.trim();
-
-  if(!nome){alert('Informe o colaborador.');return;}
-  if(!data){alert('Selecione a data.');return;}
-
-  await addDoc(collection(db,'solicitacoes_folga'),{
-    nome,
-    data,
-    turno:periodo,
-    tipo:'Folga',
-    justificativa,
-    status:'Pendente',
-    equipe:'E',
-    criadoPor:usuarioAtual.uid,
-    criadoEm:serverTimestamp()
-  });
-
-  document.getElementById('data').value='';
-  document.getElementById('nomeNovo').value='';
-  document.getElementById('just').value='';
+function clearFolgaForm(){
+  $("folgaNome").value="";
+  $("folgaData").value="";
+  $("folgaJustificativa").value="";
   document.querySelectorAll('input[name="periodoFolga"]').forEach((r,i)=>r.checked=i===0);
-  alert('Solicitação enviada para análise.');
-}
-document.getElementById('limpar').onclick=()=>{document.getElementById('data').value='';document.getElementById('nomeNovo').value='';
-document.querySelectorAll('input[name="periodoFolga"]').forEach((r,i)=>r.checked=i===0);
-document.getElementById('just').value=''}
-document.getElementById('buscar').onclick=()=>{const a=document.getElementById('ini').value,b=document.getElementById('fim').value;render(lista.filter(r=>{const x=r.data.includes('/')?r.data.split('/').reverse().join('-'):r.data;return(!a||x>=a)&&(!b||x<=b)}))}
-document.getElementById('excluir').onclick=async()=>{
-  if(perfilAtual!=='supervisor'){alert('Somente o Supervisor pode excluir solicitações reprovadas.');return;}
-  const reprovadas=lista.filter(r=>r.status==='Reprovada');
-  if(!reprovadas.length){alert('Não há solicitações reprovadas.');return;}
-  if(!confirm(`Excluir ${reprovadas.length} registro(s) reprovado(s)?`))return;
-  await Promise.all(reprovadas.map(r=>deleteDoc(doc(db,'solicitacoes_folga',r.id))));
 }
 
-const colaboradores = [
-  'ALEXANDRE MODESTO DE OLIVEIRA',
-  'ALVARO SOUZA DA SILVA',
-  'DAVID FERNANDES DA SILVA',
-  'FRANCISCO HELTON MENDES VASCONCELOS',
-  'IZAQUIEL SILVA MAGALHAES',
-  'JARDIEL LOPES RODRIGUES',
-  'RAIMUNDO SOARES RAMOS NETO'
-];
-
-function atualizarListaColaboradores(){
-  const nomes = [...new Set([
-    ...colaboradores,
-    ...lista.map(r => r.nome).filter(Boolean),
-    ...ferias.map(f => f.nome).filter(Boolean)
-  ])].sort();
-
-  colaboradores.length = 0;
-  colaboradores.push(...nomes);
-
-  const listaSolicitacao = document.getElementById('listaColaboradores');
-  if(listaSolicitacao){
-    listaSolicitacao.innerHTML = nomes.map(n => `<option value="${n}">`).join('');
-  }
-
-  const listaFerias = document.getElementById('listaColaboradoresFerias');
-  if(listaFerias){
-    listaFerias.innerHTML = nomes.map(n => `<option value="${n}">`).join('');
-  }
-
-  const editNome = document.getElementById('editNome');
-  if(editNome){
-    const valorAtual = editNome.value;
-    editNome.innerHTML = nomes.map(n => `<option>${n}</option>`).join('');
-    if(nomes.includes(valorAtual)) editNome.value = valorAtual;
-  }
+function clearFeriasForm(){
+  state.feriasEditId=null;
+  $("feriasNome").value="";
+  $("feriasInicio").value="";
+  $("feriasFim").value="";
+  $("feriasStatus").value="Programada";
+  $("btnSalvarFerias").textContent="Inserir férias";
 }
 
-atualizarListaColaboradores();
-
-document.getElementById('adicionarColaborador').onclick=()=>{
- const campo=document.getElementById('nomeNovo');
- const nome=campo.value.trim().toUpperCase();
- if(!nome){alert('Informe o nome do colaborador.');return;}
- if(!colaboradores.includes(nome)){
-   colaboradores.push(nome);
-   colaboradores.sort();
-   atualizarListaColaboradores();
-   document.getElementById('editNome').innerHTML=colaboradores.map(n=>`<option>${n}</option>`).join('');
-   alert('Colaborador adicionado.');
- }
-};
-
-let indiceEdicao=null;
-const nomesEquipe=[...new Set(lista.map(r=>r.nome))].sort();
-document.getElementById('editNome').innerHTML=nomesEquipe.map(n=>`<option>${n}</option>`).join('');
-
-function abrirEdicao(i){
-  const r=lista[i];
-  if(!r||r.status!=='Aprovada'){
-    alert('Somente folgas aprovadas podem ser editadas.');
-    return;
-  }
-  indiceEdicao=i;
-  document.getElementById('editNome').value=r.nome;
-  document.getElementById('editData').value=r.data.split('/').reverse().join('-');
-  document.getElementById('editTurno').value=r.turno;
-  if(!document.getElementById('editTurno').value){
-    document.getElementById('editTurno').add(new Option(r.turno,r.turno));
-    document.getElementById('editTurno').value=r.turno;
-  }
-  document.getElementById('editTipo').value=r.tipo;
-  if(!document.getElementById('editTipo').value){
-    document.getElementById('editTipo').add(new Option(r.tipo,r.tipo));
-    document.getElementById('editTipo').value=r.tipo;
-  }
-  document.getElementById('modalEditar').classList.remove('hidden');
-  document.getElementById('modalEditar').setAttribute('aria-hidden','false');
+function clearCollaboratorForm(){
+  $("colaboradorNome").value="";
+  $("colaboradorMatricula").value="";
+  $("colaboradorFuncao").value="";
 }
 
-function fecharEdicao(){
-  indiceEdicao=null;
-  document.getElementById('modalEditar').classList.add('hidden');
-  document.getElementById('modalEditar').setAttribute('aria-hidden','true');
-}
-
-document.getElementById('salvarEdicao').onclick=async()=>{
-  if(indiceEdicao===null)return;
-  const data=document.getElementById('editData').value;
-  if(!data){alert('Informe a data da folga.');return;}
-  const r=lista[indiceEdicao];
-  if(!r?.id)return;
-  if(!confirm('Confirma a alteração da folga aprovada?'))return;
-
-  await updateDoc(doc(db,'solicitacoes_folga',r.id),{
-    nome:document.getElementById('editNome').value,
-    data,
-    turno:document.getElementById('editTurno').value,
-    tipo:'Folga',
-    status:'Aprovada',
-    alteradoPor:usuarioAtual.uid,
-    alteradoEm:serverTimestamp()
-  });
-  fecharEdicao();
-  alert('Folga aprovada atualizada.');
-};
-
-document.getElementById('fecharModal').onclick=fecharEdicao;
-document.getElementById('cancelarEdicao').onclick=fecharEdicao;
-document.getElementById('modalEditar').onclick=(e)=>{if(e.target.id==='modalEditar')fecharEdicao()};
-
-
-
-async function carregarPerfil(user){
-  const snap=await getDoc(doc(db,'usuarios',user.uid));
-  if(!snap.exists()) throw new Error('Perfil não encontrado em usuarios/'+user.uid);
-  const perfil=snap.data();
-  if(perfil.ativo!==true) throw new Error('Usuário desativado.');
-  return perfil;
-}
-
-function aplicarPermissoes(){
-  const gestor=perfilAtual==='supervisor'||perfilAtual==='especialista';
-  document.querySelectorAll('#aprovacao button').forEach(btn=>{
-    if(btn.id!=='buscar'&&btn.id!=='imprimir') btn.style.display=gestor?'':'none';
-  });
-  document.querySelectorAll('#ferias .ferias-form,#ferias #salvarFerias,#ferias #limparFerias').forEach(el=>{
-    el.style.display=perfilAtual==='supervisor'?'':'none';
-  });
-}
-
-function iniciarEscutas(){
-  onSnapshot(query(collection(db,'solicitacoes_folga'),orderBy('data','asc')),snap=>{
-    lista.length=0;
-    snap.forEach(d=>lista.push({id:d.id,...d.data()}));
-    atualizarListaColaboradores();
-    render();
-    aplicarPermissoes();
-  },erro=>alert('Erro ao carregar folgas: '+erro.message));
-
-  onSnapshot(query(collection(db,'ferias'),orderBy('inicio','asc')),snap=>{
-    ferias.length=0;
-    snap.forEach(d=>ferias.push({id:d.id,...d.data()}));
-    atualizarListaColaboradores();
-    renderFerias();
-    aplicarPermissoes();
-  },erro=>alert('Erro ao carregar férias: '+erro.message));
-}
-
-document.getElementById('btnEntrar').onclick=async()=>{
-  const email=document.getElementById('loginEmail').value.trim();
-  const senha=document.getElementById('loginSenha').value;
-  const msg=document.getElementById('loginMsg');
-  msg.textContent='';
+$("btnEntrar").addEventListener("click",async()=>{
+  $("loginMsg").textContent="";
   try{
-    await signInWithEmailAndPassword(auth,email,senha);
-  }catch(e){
-    msg.textContent='Falha no acesso. Verifique e-mail e senha.';
+    await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginSenha").value);
+  }catch{
+    $("loginMsg").textContent="Falha no acesso. Verifique e-mail e senha.";
   }
-};
+});
 
-document.getElementById('btnSair').onclick=()=>signOut(auth);
+$("btnSair").addEventListener("click",()=>signOut(auth));
+document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>setView(btn.dataset.view)));
+
+$("btnEnviarFolga").addEventListener("click",async()=>{
+  const nome=$("folgaNome").value.trim().toUpperCase();
+  const data=$("folgaData").value;
+  const periodo=document.querySelector('input[name="periodoFolga"]:checked')?.value||"Manhã";
+  const justificativa=$("folgaJustificativa").value.trim();
+  if(!nome||!data){alert("Informe colaborador e data.");return;}
+
+  await addDoc(collection(db,"solicitacoes_folga"),{
+    nome,data,periodo,justificativa,status:"Pendente",equipe:"E",
+    criadoPor:state.user.uid,criadoEm:serverTimestamp()
+  });
+  clearFolgaForm();
+  alert("Solicitação enviada.");
+});
+
+$("btnLimparFolga").addEventListener("click",clearFolgaForm);
+
+$("btnPesquisarFolgas").addEventListener("click",()=>{
+  const ini=$("filtroInicio").value, fim=$("filtroFim").value;
+  renderFolgas(state.folgas.filter(f=>(!ini||f.data>=ini)&&(!fim||f.data<=fim)));
+});
+
+$("btnImprimirFolgas").addEventListener("click",()=>{
+  const ini=$("filtroInicio").value, fim=$("filtroFim").value;
+  const approved=state.folgas.filter(f=>f.status==="Aprovada"&&(!ini||f.data>=ini)&&(!fim||f.data<=fim));
+  if(!approved.length){alert("Não há folgas aprovadas no período.");return;}
+  renderFolgas(approved);
+  setView("aprovacao");
+  window.print();
+  setTimeout(()=>renderFolgas(),300);
+});
+
+$("btnExcluirReprovadas").addEventListener("click",async()=>{
+  if(!isSupervisor())return;
+  const rejected=state.folgas.filter(f=>f.status==="Reprovada");
+  if(!rejected.length){alert("Não há solicitações reprovadas.");return;}
+  if(!confirm(`Excluir ${rejected.length} solicitação(ões) reprovada(s)?`))return;
+  await Promise.all(rejected.map(f=>deleteDoc(doc(db,"solicitacoes_folga",f.id))));
+});
+
+$("tbodyFolgas").addEventListener("click",async e=>{
+  const btn=e.target.closest("button[data-action]");
+  if(!btn)return;
+  const id=btn.dataset.id;
+  const item=state.folgas.find(f=>f.id===id);
+  if(btn.dataset.action==="status-folga"){
+    await updateDoc(doc(db,"solicitacoes_folga",id),{
+      status:btn.dataset.status,analisadoPor:state.user.uid,analisadoEm:serverTimestamp()
+    });
+  }
+  if(btn.dataset.action==="edit-folga"&&item){
+    state.folgaEditId=id;
+    $("editFolgaNome").value=item.nome;
+    $("editFolgaData").value=item.data;
+    $("editFolgaPeriodo").value=item.periodo||item.turno||"Manhã";
+    $("modalFolga").classList.remove("hidden");
+  }
+});
+
+$("btnSalvarEdicaoFolga").addEventListener("click",async()=>{
+  if(!state.folgaEditId)return;
+  await updateDoc(doc(db,"solicitacoes_folga",state.folgaEditId),{
+    nome:$("editFolgaNome").value,
+    data:$("editFolgaData").value,
+    periodo:$("editFolgaPeriodo").value,
+    status:"Aprovada",
+    alteradoPor:state.user.uid,alteradoEm:serverTimestamp()
+  });
+  $("modalFolga").classList.add("hidden");
+  state.folgaEditId=null;
+});
+$("btnFecharModal").addEventListener("click",()=>$("modalFolga").classList.add("hidden"));
+$("btnCancelarEdicaoFolga").addEventListener("click",()=>$("modalFolga").classList.add("hidden"));
+
+$("btnSalvarFerias").addEventListener("click",async()=>{
+  if(!isSupervisor())return;
+  const nome=$("feriasNome").value.trim().toUpperCase();
+  const inicio=$("feriasInicio").value;
+  const fim=$("feriasFim").value;
+  const status=$("feriasStatus").value;
+  if(!nome||!inicio||!fim){alert("Informe colaborador, início e fim.");return;}
+  if(fim<inicio){alert("A data final não pode ser anterior à inicial.");return;}
+
+  const payload={nome,inicio,fim,status,equipe:"E",alteradoPor:state.user.uid,alteradoEm:serverTimestamp()};
+  if(state.feriasEditId){
+    await updateDoc(doc(db,"ferias",state.feriasEditId),payload);
+  }else{
+    await addDoc(collection(db,"ferias"),{...payload,criadoPor:state.user.uid,criadoEm:serverTimestamp()});
+  }
+  clearFeriasForm();
+});
+$("btnLimparFerias").addEventListener("click",clearFeriasForm);
+$("btnImprimirFerias").addEventListener("click",()=>{setView("ferias");window.print();});
+
+$("tbodyFerias").addEventListener("click",async e=>{
+  const btn=e.target.closest("button[data-action]");
+  if(!btn)return;
+  const id=btn.dataset.id;
+  const item=state.ferias.find(f=>f.id===id);
+  if(btn.dataset.action==="edit-ferias"&&item){
+    state.feriasEditId=id;
+    $("feriasNome").value=item.nome;
+    $("feriasInicio").value=item.inicio;
+    $("feriasFim").value=item.fim;
+    $("feriasStatus").value=item.status;
+    $("btnSalvarFerias").textContent="Salvar alteração";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  if(btn.dataset.action==="delete-ferias"){
+    if(confirm("Excluir este registro de férias?"))await deleteDoc(doc(db,"ferias",id));
+  }
+});
+
+$("btnSalvarColaborador").addEventListener("click",async()=>{
+  if(!isSupervisor())return;
+  const nome=$("colaboradorNome").value.trim().toUpperCase();
+  if(!nome){alert("Informe o nome.");return;}
+  await addDoc(collection(db,"colaboradores"),{
+    nome,
+    matricula:$("colaboradorMatricula").value.trim(),
+    funcao:$("colaboradorFuncao").value.trim(),
+    equipe:"E",ativo:true,criadoPor:state.user.uid,criadoEm:serverTimestamp()
+  });
+  clearCollaboratorForm();
+});
+$("btnLimparColaborador").addEventListener("click",clearCollaboratorForm);
+$("tbodyColaboradores").addEventListener("click",async e=>{
+  const btn=e.target.closest("button[data-action='delete-colaborador']");
+  if(btn&&confirm("Excluir colaborador?"))await deleteDoc(doc(db,"colaboradores",btn.dataset.id));
+});
 
 onAuthStateChanged(auth,async user=>{
   if(!user){
-    usuarioAtual=null;perfilAtual=null;
-    document.getElementById('loginFirebase').style.display='flex';
-    document.getElementById('appFirebase').style.display='none';
+    state.user=null;state.profile=null;
+    state.unsubscribers.forEach(fn=>fn());
+    state.unsubscribers=[];
+    showLogin();
     return;
   }
   try{
-    const perfil=await carregarPerfil(user);
-    usuarioAtual=user;
-    perfilAtual=perfil.perfil;
-    document.getElementById('usuarioLogado').textContent=`${perfil.nome||user.email} • ${perfil.perfil}`;
-    document.getElementById('loginFirebase').style.display='none';
-    document.getElementById('appFirebase').style.display='block';
-    iniciarEscutas();
+    state.user=user;
+    state.profile=await loadProfile(user);
+    showApp();
+    subscribeData();
   }catch(e){
     alert(e.message);
     await signOut(auth);
   }
 });
-
 </script>
-</div>
-</body></html>
+</body>
+</html>
