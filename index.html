@@ -95,6 +95,18 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 .rota-filtros{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
 @media(max-width:760px){.rota-filtros{grid-template-columns:1fr}}
 
+
+.efetivo-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.efetivo-lista{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.efetivo-item{border:1px solid var(--linha);border-radius:12px;padding:12px;background:#fff}
+.efetivo-item strong{color:var(--azul-escuro)}
+.status-presente{border-left:5px solid var(--verde)}
+.status-folga{border-left:5px solid var(--laranja)}
+.status-ferias{border-left:5px solid #2563eb}
+.status-adm{border-left:5px solid #64748b}
+@media(max-width:900px){.efetivo-cards{grid-template-columns:repeat(2,1fr)}.efetivo-lista{grid-template-columns:1fr}}
+@media(max-width:520px){.efetivo-cards{grid-template-columns:1fr}}
+
 @media print{
   @page{size:A4 landscape;margin:9mm}
   .no-print,#pedido,.tabs,.topbar{display:none!important}
@@ -141,6 +153,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
   <main class="container">
     <nav class="tabs no-print">
       <button class="tab active" data-view="dashboard">Dashboard</button>
+      <button class="tab" data-view="efetivo">Efetivo Diário</button>
       <button class="tab" data-view="pedido">Pedido de Folga</button>
       <button class="tab" data-view="aprovacao">Aprovação</button>
       <button class="tab" data-view="ferias">Férias</button>
@@ -168,6 +181,43 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
           <div class="section-head"><div class="icon">!</div><h2>Alertas</h2></div>
           <div id="alertasDashboard"></div>
         </div>
+      </div>
+    </section>
+
+
+    <section id="efetivo" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">👥</div><h2>Efetivo Diário da Equipe E</h2></div>
+
+        <div class="filters no-print">
+          <div>
+            <label>Data</label>
+            <input id="efetivoData" type="date">
+          </div>
+          <div>
+            <label>Período</label>
+            <select id="efetivoPeriodo">
+              <option>Manhã</option>
+              <option>Tarde</option>
+              <option>Noite</option>
+            </select>
+          </div>
+          <div class="actions" style="margin:0">
+            <button id="btnGerarEfetivo" class="btn-blue">Gerar efetivo</button>
+            <button id="btnImprimirEfetivo" class="btn-orange">Imprimir</button>
+          </div>
+        </div>
+
+        <div class="efetivo-cards" style="margin-top:14px">
+          <div class="kpi"><div id="efetivoTotal" class="value">0</div><div class="label">Total cadastrado</div></div>
+          <div class="kpi"><div id="efetivoPresentes" class="value">0</div><div class="label">Irão à usina</div></div>
+          <div class="kpi"><div id="efetivoFolga" class="value">0</div><div class="label">Folga aprovada</div></div>
+          <div class="kpi"><div id="efetivoFerias" class="value">0</div><div class="label">Férias</div></div>
+          <div class="kpi"><div id="efetivoAdm" class="value">0</div><div class="label">Regime ADM</div></div>
+        </div>
+
+        <div id="resumoEfetivo" style="margin-bottom:12px;color:var(--muted)"></div>
+        <div id="listaEfetivo" class="efetivo-lista"></div>
       </div>
     </section>
 
@@ -496,6 +546,7 @@ function subscribeData(){
       state.colaboradores=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderCollaborators();
       populateCollaborators();
+      if($("efetivoData")?.value) gerarEfetivoDiario();
       renderDashboard();
     },err=>alert("Erro ao carregar colaboradores: "+err.message))
   );
@@ -504,6 +555,7 @@ function subscribeData(){
     onSnapshot(query(collection(db,"solicitacoes_folga"),orderBy("data","asc")),snap=>{
       state.folgas=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFolgas();
+      if($("efetivoData")?.value) gerarEfetivoDiario();
       renderBanco();
       atualizarAvisoSaldoFolga();
       renderDashboard();
@@ -535,6 +587,7 @@ function subscribeData(){
       state.ferias=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFerias();
       populateCollaborators();
+      if($("efetivoData")?.value) gerarEfetivoDiario();
       renderDashboard();
     },err=>alert("Erro ao carregar férias: "+err.message))
   );
@@ -1167,6 +1220,74 @@ $("btnImprimirRota").addEventListener("click",()=>{
   setView("rotas");
   window.print();
 });
+
+
+function situacaoColaboradorNoDia(colaborador,data,periodo){
+  if((colaborador.regime||"TURNO")==="ADM"){
+    return {chave:"adm",texto:"ADM"};
+  }
+
+  const ferias=state.ferias.some(f=>
+    normalizarNome(f.nome)===normalizarNome(colaborador.nome)
+    && ["Programada","Aprovada"].includes(f.status)
+    && data>=f.inicio
+    && data<=f.fim
+  );
+  if(ferias)return {chave:"ferias",texto:"Férias"};
+
+  const folga=state.folgas.some(f=>
+    normalizarNome(f.nome)===normalizarNome(colaborador.nome)
+    && f.status==="Aprovada"
+    && f.data===data
+    && String(f.periodo||f.turno||"").toLowerCase()===periodo.toLowerCase()
+  );
+  if(folga)return {chave:"folga",texto:"Folga aprovada"};
+
+  return {chave:"presente",texto:"Irá à usina"};
+}
+
+function gerarEfetivoDiario(){
+  const data=$("efetivoData").value;
+  const periodo=$("efetivoPeriodo").value;
+  if(!data){
+    alert("Selecione a data.");
+    return;
+  }
+
+  const ativos=state.colaboradores.filter(c=>c.ativo!==false);
+  const resultado=ativos.map(c=>({...c,situacao:situacaoColaboradorNoDia(c,data,periodo)}));
+
+  const presentes=resultado.filter(c=>c.situacao.chave==="presente");
+  const folgas=resultado.filter(c=>c.situacao.chave==="folga");
+  const ferias=resultado.filter(c=>c.situacao.chave==="ferias");
+  const adm=resultado.filter(c=>c.situacao.chave==="adm");
+
+  $("efetivoTotal").textContent=ativos.length;
+  $("efetivoPresentes").textContent=presentes.length;
+  $("efetivoFolga").textContent=folgas.length;
+  $("efetivoFerias").textContent=ferias.length;
+  $("efetivoAdm").textContent=adm.length;
+
+  $("resumoEfetivo").innerHTML=`Efetivo de <b>${formatDate(data)}</b> — período <b>${periodo}</b>.`;
+
+  $("listaEfetivo").innerHTML=resultado.map(c=>`
+    <div class="efetivo-item status-${c.situacao.chave}">
+      <strong>${c.nome||""}</strong><br>
+      <span>${c.funcao||"Função não informada"}</span><br>
+      <span class="badge ${c.situacao.chave==="presente"?"aprovada":c.situacao.chave==="folga"?"pendente":c.situacao.chave==="ferias"?"aprovada":"reprovada"}">${c.situacao.texto}</span>
+      ${c.situacao.chave==="presente" ? `<div style="margin-top:6px;font-size:12px;color:var(--muted)">Veículo: ${c.veiculo||"não definido"} • ${c.horario||"horário não definido"}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+$("btnGerarEfetivo").addEventListener("click",gerarEfetivoDiario);
+$("btnImprimirEfetivo").addEventListener("click",()=>{
+  gerarEfetivoDiario();
+  setView("efetivo");
+  window.print();
+});
+
+$("efetivoData").value=new Date().toISOString().slice(0,10);
 
 onAuthStateChanged(auth,async user=>{
   if(!user){
