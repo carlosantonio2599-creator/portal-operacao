@@ -72,7 +72,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
   td:before{content:attr(data-label);display:block;font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
 }
 
-.dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.dashboard-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
 .kpi{background:white;border:1px solid var(--linha);border-radius:15px;padding:16px}
 .kpi .value{font-size:30px;font-weight:900;color:var(--azul-escuro)}
 .kpi .label{font-size:12px;color:var(--muted);font-weight:800}
@@ -81,6 +81,11 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 .banco-negativo{color:#991b1b;font-weight:900}.banco-positivo{color:#166534;font-weight:900}
 @media(max-width:900px){.dashboard-grid{grid-template-columns:repeat(2,1fr)}.dashboard-columns{grid-template-columns:1fr}}
 @media(max-width:520px){.dashboard-grid{grid-template-columns:1fr}}
+
+
+.status-vencido{color:#991b1b;font-weight:900}
+.status-vencer{color:#92400e;font-weight:900}
+.status-valido{color:#166534;font-weight:900}
 
 @media print{
   @page{size:A4 landscape;margin:9mm}
@@ -132,6 +137,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
       <button class="tab" data-view="aprovacao">Aprovação</button>
       <button class="tab" data-view="ferias">Férias</button>
       <button class="tab" data-view="banco">Banco de Horas</button>
+      <button class="tab" data-view="treinamentos">Treinamentos</button>
       <button class="tab supervisor-only" data-view="colaboradores">Colaboradores</button>
     </nav>
 
@@ -142,6 +148,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
         <div class="kpi"><div id="kpiFolgasPendentes" class="value">0</div><div class="label">Folgas pendentes</div></div>
         <div class="kpi"><div id="kpiFeriasProximas" class="value">0</div><div class="label">Férias programadas</div></div>
         <div class="kpi"><div id="kpiBancoNegativo" class="value">0</div><div class="label">Banco negativo</div></div>
+        <div class="kpi"><div id="kpiTreinamentosVencer" class="value">0</div><div class="label">Treinamentos a vencer</div></div>
       </div>
       <div class="dashboard-columns">
         <div class="card">
@@ -237,10 +244,15 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
     <section id="banco" class="view">
       <div class="card">
         <div class="section-head"><div class="icon">⏱</div><h2>Banco de Horas</h2></div>
+        <div class="resumo" style="margin-bottom:14px">
+          <div class="mini-card"><div id="bancoEquipeCadastrada" class="numero">0</div><div>Colaboradores sob gestão</div></div>
+          <div class="mini-card"><div id="bancoImportadosUltimo" class="numero">0</div><div>Importados na última planilha</div></div>
+          <div class="mini-card"><div id="bancoIgnoradosUltimo" class="numero">0</div><div>Ignorados por não pertencerem à equipe</div></div>
+        </div>
         <div class="import-box supervisor-only no-print">
           <label>Importar planilha semanal do RH (XLSX, XLS ou CSV)</label>
           <input id="arquivoBanco" type="file" accept=".xlsx,.xls,.csv">
-          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">A planilha pode conter as colunas Nome, Matrícula e Saldo/Banco de Horas.</p>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">A planilha pode conter as colunas Nome, Matrícula e Saldo/Banco de Horas. Serão importados somente os colaboradores cadastrados na sua gestão.</p>
         </div>
         <div class="filters no-print" style="margin-top:14px">
           <div><label>Pesquisar colaborador</label><input id="pesquisaBanco" placeholder="Nome ou matrícula"></div>
@@ -250,6 +262,57 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
         <table>
           <thead><tr><th>Colaborador</th><th>Matrícula</th><th>Saldo</th><th>Atualização</th><th>Status</th></tr></thead>
           <tbody id="tbodyBanco"></tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <section id="treinamentos" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">🎓</div><h2>Treinamentos e Certificações</h2></div>
+
+        <div id="formTreinamento" class="grid4 no-print">
+          <div>
+            <label>Colaborador</label>
+            <input id="treinamentoNome" list="listaColaboradoresTreinamento" placeholder="Selecione o colaborador">
+            <datalist id="listaColaboradoresTreinamento"></datalist>
+          </div>
+          <div>
+            <label>Treinamento</label>
+            <input id="treinamentoTitulo" placeholder="Ex.: NR-10, PT Digital, Brigada">
+          </div>
+          <div>
+            <label>Data de realização</label>
+            <input id="treinamentoData" type="date">
+          </div>
+          <div>
+            <label>Validade</label>
+            <input id="treinamentoValidade" type="date">
+          </div>
+        </div>
+
+        <div class="actions no-print">
+          <button id="btnSalvarTreinamento" class="btn-green">Salvar treinamento</button>
+          <button id="btnLimparTreinamento" class="btn-gray">Limpar</button>
+          <button id="btnImprimirTreinamentos" class="btn-orange">Imprimir</button>
+        </div>
+
+        <div class="filters no-print" style="margin-top:14px">
+          <div><label>Pesquisar</label><input id="pesquisaTreinamento" placeholder="Nome ou treinamento"></div>
+          <div><label>Status</label>
+            <select id="filtroTreinamento">
+              <option value="">Todos</option>
+              <option value="valido">Válidos</option>
+              <option value="vencer">A vencer em até 30 dias</option>
+              <option value="vencido">Vencidos</option>
+            </select>
+          </div>
+          <div class="actions" style="margin:0"><button id="btnPesquisarTreinamentos" class="btn-blue">Pesquisar</button></div>
+        </div>
+
+        <table>
+          <thead><tr><th>Colaborador</th><th>Treinamento</th><th>Realização</th><th>Validade</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+          <tbody id="tbodyTreinamentos"></tbody>
         </table>
       </div>
     </section>
@@ -319,6 +382,8 @@ const state = {
   folgas: [],
   ferias: [],
   bancoHoras: [],
+  treinamentos: [],
+  treinamentoEditId: null,
   folgaEditId: null,
   feriasEditId: null,
   unsubscribers: []
@@ -342,6 +407,9 @@ function applyPermissions(){
   $("formFerias").classList.toggle("hidden",!isSupervisor());
   $("btnSalvarFerias").classList.toggle("hidden",!isSupervisor());
   $("btnLimparFerias").classList.toggle("hidden",!isSupervisor());
+  $("formTreinamento").classList.toggle("hidden",!isGestor());
+  $("btnSalvarTreinamento").classList.toggle("hidden",!isGestor());
+  $("btnLimparTreinamento").classList.toggle("hidden",!isGestor());
 }
 
 function showLogin(message=""){
@@ -396,6 +464,16 @@ function subscribeData(){
     },err=>alert("Erro ao carregar banco de horas: "+err.message))
   );
 
+
+  state.unsubscribers.push(
+    onSnapshot(query(collection(db,"treinamentos"),orderBy("validade","asc")),snap=>{
+      state.treinamentos=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderTreinamentos();
+      renderDashboard();
+      populateCollaborators();
+    },err=>alert("Erro ao carregar treinamentos: "+err.message))
+  );
+
   state.unsubscribers.push(
     onSnapshot(query(collection(db,"ferias"),orderBy("inicio","asc")),snap=>{
       state.ferias=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -410,12 +488,14 @@ function populateCollaborators(){
   const names=[...new Set([
     ...state.colaboradores.map(c=>c.nome),
     ...state.folgas.map(f=>f.nome),
-    ...state.ferias.map(f=>f.nome)
+    ...state.ferias.map(f=>f.nome),
+    ...state.treinamentos.map(t=>t.nome)
   ].filter(Boolean))].sort();
 
   $("listaColaboradores").innerHTML=names.map(n=>`<option value="${n}">`).join("");
   $("listaColaboradoresFerias").innerHTML=names.map(n=>`<option value="${n}">`).join("");
   $("editFolgaNome").innerHTML=names.map(n=>`<option>${n}</option>`).join("");
+  $("listaColaboradoresTreinamento").innerHTML=names.map(n=>`<option value="${n}">`).join("");
 }
 
 function statusBadge(status){
@@ -492,6 +572,14 @@ function saldoFormatado(valor){
 }
 
 function renderBanco(list=state.bancoHoras){
+  const idsEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>c.id));
+  const matriculasEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>String(c.matricula||"").trim()).filter(Boolean));
+  const nomesEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>String(c.nome||"").trim().toUpperCase()));
+  list=list.filter(b=>
+    (b.colaboradorId && idsEquipe.has(b.colaboradorId))
+    || (b.matricula && matriculasEquipe.has(String(b.matricula).trim()))
+    || nomesEquipe.has(String(b.nome||"").trim().toUpperCase())
+  );
   $("tbodyBanco").innerHTML=list.map(b=>{
     const min=saldoParaMinutos(b.saldo);
     return `<tr>
@@ -506,9 +594,11 @@ function renderBanco(list=state.bancoHoras){
 
 function renderDashboard(){
   $("kpiColaboradores").textContent=state.colaboradores.length;
+  if($("bancoEquipeCadastrada")) $("bancoEquipeCadastrada").textContent=state.colaboradores.filter(c=>c.ativo!==false).length;
   $("kpiFolgasPendentes").textContent=state.folgas.filter(f=>f.status==="Pendente").length;
   $("kpiFeriasProximas").textContent=state.ferias.filter(f=>["Programada","Aprovada"].includes(f.status)).length;
   $("kpiBancoNegativo").textContent=state.bancoHoras.filter(b=>saldoParaMinutos(b.saldo)<0).length;
+  $("kpiTreinamentosVencer").textContent=state.treinamentos.filter(t=>["vencer","vencido"].includes(statusTreinamento(t.validade).chave)).length;
 
   const ausencias=[
     ...state.folgas.filter(f=>f.status==="Aprovada").map(f=>({nome:f.nome,data:f.data,tipo:`Folga - ${f.periodo||""}`})),
@@ -524,9 +614,49 @@ function renderDashboard(){
   if(negativos.length)alertas.push(`${negativos.length} colaborador(es) com banco negativo.`);
   const pendentes=state.folgas.filter(f=>f.status==="Pendente").length;
   if(pendentes)alertas.push(`${pendentes} solicitação(ões) aguardando análise.`);
+  const treinCriticos=state.treinamentos.filter(t=>["vencer","vencido"].includes(statusTreinamento(t.validade).chave));
+  if(treinCriticos.length)alertas.push(`${treinCriticos.length} treinamento(s) vencido(s) ou a vencer.`);
   $("alertasDashboard").innerHTML=alertas.length
     ? alertas.map(a=>`<div style="padding:9px;background:#fff7ed;border-left:4px solid var(--laranja);border-radius:8px;margin:8px 0">${a}</div>`).join("")
     : '<span class="badge aprovada">Sem alertas</span>';
+}
+
+
+function statusTreinamento(validade){
+  if(!validade)return {chave:"valido",texto:"Sem validade"};
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const venc=new Date(validade+"T00:00:00");
+  const dias=Math.ceil((venc-hoje)/86400000);
+  if(dias<0)return {chave:"vencido",texto:"Vencido"};
+  if(dias<=30)return {chave:"vencer",texto:`A vencer (${dias}d)`};
+  return {chave:"valido",texto:"Válido"};
+}
+
+function renderTreinamentos(list=state.treinamentos){
+  $("tbodyTreinamentos").innerHTML=list.map(t=>{
+    const st=statusTreinamento(t.validade);
+    const cls=st.chave==="vencido"?"status-vencido":st.chave==="vencer"?"status-vencer":"status-valido";
+    return `<tr>
+      <td data-label="Colaborador">${t.nome||""}</td>
+      <td data-label="Treinamento">${t.titulo||""}</td>
+      <td data-label="Realização">${formatDate(t.data)}</td>
+      <td data-label="Validade">${formatDate(t.validade)}</td>
+      <td data-label="Status"><span class="${cls}">${st.texto}</span></td>
+      <td data-label="Ações" class="no-print">
+        ${isGestor()?`<button class="btn-edit" data-action="edit-treinamento" data-id="${t.id}">Editar</button>`:""}
+        ${isSupervisor()?`<button class="btn-red" data-action="delete-treinamento" data-id="${t.id}">Excluir</button>`:""}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function clearTrainingForm(){
+  state.treinamentoEditId=null;
+  $("treinamentoNome").value="";
+  $("treinamentoTitulo").value="";
+  $("treinamentoData").value="";
+  $("treinamentoValidade").value="";
+  $("btnSalvarTreinamento").textContent="Salvar treinamento";
 }
 
 function clearFolgaForm(){
@@ -699,24 +829,101 @@ $("arquivoBanco").addEventListener("change",async e=>{
   if(!isSupervisor())return;
   const file=e.target.files?.[0];
   if(!file)return;
+
+  const equipeAtiva=state.colaboradores.filter(c=>c.ativo!==false);
+  if(!equipeAtiva.length){
+    alert("Cadastre primeiro os colaboradores sob sua gestão no módulo Colaboradores.");
+    e.target.value="";
+    return;
+  }
+
+  const normalizarTexto=valor=>String(valor??"")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g," ");
+
+  const localizarColaborador=(nome,matricula)=>{
+    const mat=String(matricula??"").trim();
+    const nomeNormalizado=normalizarTexto(nome);
+
+    return equipeAtiva.find(c=>{
+      const matCadastro=String(c.matricula??"").trim();
+      const nomeCadastro=normalizarTexto(c.nome);
+      return (mat && matCadastro && mat===matCadastro)
+        || (nomeNormalizado && nomeCadastro===nomeNormalizado);
+    });
+  };
+
   const reader=new FileReader();
   reader.onload=async ev=>{
     try{
       const wb=XLSX.read(ev.target.result,{type:"array"});
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
-      let gravados=0;
+      const rows=XLSX.utils.sheet_to_json(
+        wb.Sheets[wb.SheetNames[0]],
+        {defval:""}
+      );
+
+      let importados=0;
+      let ignorados=0;
+      const naoEncontrados=[];
+
       for(const row of rows){
-        const nome=String(row.Nome||row.NOME||row.Colaborador||row.COLABORADOR||"").trim().toUpperCase();
-        const matricula=String(row.Matrícula||row.MATRÍCULA||row.Matricula||row.MATRICULA||"").trim();
-        const saldo=row.Saldo??row.SALDO??row["Banco de Horas"]??row.BANCO??row["SALDO BANCO"]??"";
-        if(!nome||saldo==="")continue;
-        const existente=state.bancoHoras.find(b=>(matricula&&b.matricula===matricula)||b.nome===nome);
-        const payload={nome,matricula,saldo:String(saldo),dataReferencia:new Date().toISOString().slice(0,10),equipe:"E",alteradoPor:state.user.uid,alteradoEm:serverTimestamp()};
-        if(existente)await updateDoc(doc(db,"banco_horas",existente.id),payload);
-        else await addDoc(collection(db,"banco_horas"),{...payload,criadoPor:state.user.uid,criadoEm:serverTimestamp()});
-        gravados++;
+        const nomePlanilha=row.Nome||row.NOME||row.Colaborador||row.COLABORADOR||"";
+        const matriculaPlanilha=row.Matrícula||row.MATRÍCULA||row.Matricula||row.MATRICULA||"";
+        const saldo=row.Saldo??row.SALDO??row["Banco de Horas"]??row.BANCO??row["SALDO BANCO"]??row["Saldo Banco"]??"";
+
+        if(!nomePlanilha && !matriculaPlanilha)continue;
+        if(saldo==="")continue;
+
+        const colaborador=localizarColaborador(nomePlanilha,matriculaPlanilha);
+        if(!colaborador){
+          ignorados++;
+          naoEncontrados.push(String(nomePlanilha||matriculaPlanilha));
+          continue;
+        }
+
+        const existente=state.bancoHoras.find(b=>
+          (colaborador.matricula && b.matricula===colaborador.matricula)
+          || b.colaboradorId===colaborador.id
+          || normalizarTexto(b.nome)===normalizarTexto(colaborador.nome)
+        );
+
+        const payload={
+          colaboradorId:colaborador.id,
+          nome:colaborador.nome,
+          matricula:colaborador.matricula||String(matriculaPlanilha).trim(),
+          saldo:String(saldo),
+          dataReferencia:new Date().toISOString().slice(0,10),
+          equipe:"E",
+          sobGestao:true,
+          alteradoPor:state.user.uid,
+          alteradoEm:serverTimestamp()
+        };
+
+        if(existente){
+          await updateDoc(doc(db,"banco_horas",existente.id),payload);
+        }else{
+          await addDoc(collection(db,"banco_horas"),{
+            ...payload,
+            criadoPor:state.user.uid,
+            criadoEm:serverTimestamp()
+          });
+        }
+        importados++;
       }
-      alert(`Importação concluída: ${gravados} registro(s).`);
+
+      $("bancoImportadosUltimo").textContent=importados;
+      $("bancoIgnoradosUltimo").textContent=ignorados;
+
+      let mensagem=`Importação concluída.\n\nColaboradores da Equipe E importados: ${importados}\nRegistros ignorados: ${ignorados}`;
+      if(naoEncontrados.length){
+        const amostra=[...new Set(naoEncontrados)].slice(0,8).join("\n• ");
+        mensagem+=`\n\nNão encontrados no cadastro:\n• ${amostra}`;
+        if(naoEncontrados.length>8)mensagem+=`\n• ... e mais ${naoEncontrados.length-8}`;
+      }
+      alert(mensagem);
       e.target.value="";
     }catch(err){
       alert("Falha na importação: "+err.message);
@@ -737,6 +944,56 @@ $("btnPesquisarBanco").addEventListener("click",()=>{
 });
 
 $("btnImprimirBanco").addEventListener("click",()=>{setView("banco");window.print();});
+
+
+$("btnSalvarTreinamento").addEventListener("click",async()=>{
+  if(!isGestor())return;
+  const nome=$("treinamentoNome").value.trim().toUpperCase();
+  const titulo=$("treinamentoTitulo").value.trim();
+  const data=$("treinamentoData").value;
+  const validade=$("treinamentoValidade").value;
+  if(!nome||!titulo||!data){alert("Informe colaborador, treinamento e data.");return;}
+
+  const payload={nome,titulo,data,validade,equipe:"E",alteradoPor:state.user.uid,alteradoEm:serverTimestamp()};
+  if(state.treinamentoEditId){
+    await updateDoc(doc(db,"treinamentos",state.treinamentoEditId),payload);
+  }else{
+    await addDoc(collection(db,"treinamentos"),{...payload,criadoPor:state.user.uid,criadoEm:serverTimestamp()});
+  }
+  clearTrainingForm();
+});
+
+$("btnLimparTreinamento").addEventListener("click",clearTrainingForm);
+$("btnImprimirTreinamentos").addEventListener("click",()=>{setView("treinamentos");window.print();});
+
+$("btnPesquisarTreinamentos").addEventListener("click",()=>{
+  const termo=$("pesquisaTreinamento").value.trim().toUpperCase();
+  const filtro=$("filtroTreinamento").value;
+  renderTreinamentos(state.treinamentos.filter(t=>{
+    const atendeTexto=!termo||String(t.nome||"").includes(termo)||String(t.titulo||"").toUpperCase().includes(termo);
+    const atendeStatus=!filtro||statusTreinamento(t.validade).chave===filtro;
+    return atendeTexto&&atendeStatus;
+  }));
+});
+
+$("tbodyTreinamentos").addEventListener("click",async e=>{
+  const btn=e.target.closest("button[data-action]");
+  if(!btn)return;
+  const id=btn.dataset.id;
+  const item=state.treinamentos.find(t=>t.id===id);
+  if(btn.dataset.action==="edit-treinamento"&&item){
+    state.treinamentoEditId=id;
+    $("treinamentoNome").value=item.nome||"";
+    $("treinamentoTitulo").value=item.titulo||"";
+    $("treinamentoData").value=item.data||"";
+    $("treinamentoValidade").value=item.validade||"";
+    $("btnSalvarTreinamento").textContent="Salvar alteração";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  if(btn.dataset.action==="delete-treinamento"&&isSupervisor()){
+    if(confirm("Excluir este treinamento?"))await deleteDoc(doc(db,"treinamentos",id));
+  }
+});
 
 onAuthStateChanged(auth,async user=>{
   if(!user){
