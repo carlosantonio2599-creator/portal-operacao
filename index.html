@@ -188,6 +188,9 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
           <label>Justificativa</label>
           <textarea id="folgaJustificativa" rows="3"></textarea>
         </div>
+        <div id="avisoSaldoFolga" style="margin-top:12px;padding:10px;border-radius:10px;background:#eef6ff;color:#073b63;font-size:13px">
+          Selecione um colaborador para consultar o saldo disponível. Cada solicitação reserva 07:00.
+        </div>
         <div class="actions no-print">
           <button id="btnEnviarFolga" class="btn-green">Enviar solicitação</button>
           <button id="btnLimparFolga" class="btn-gray">Limpar</button>
@@ -252,7 +255,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
         <div class="import-box supervisor-only no-print">
           <label>Importar planilha semanal do RH (XLSX, XLS ou CSV)</label>
           <input id="arquivoBanco" type="file" accept=".xlsx,.xls,.csv">
-          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">A planilha pode conter as colunas Nome, Matrícula e Saldo/Banco de Horas. Serão importados somente os colaboradores cadastrados na sua gestão.</p>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">A planilha pode conter as colunas Nome, Matrícula e Saldo/Banco de Horas. Serão importados somente os colaboradores cadastrados na sua gestão. Cada folga pendente ou aprovada reserva 07:00 do saldo.</p>
         </div>
         <div class="filters no-print" style="margin-top:14px">
           <div><label>Pesquisar colaborador</label><input id="pesquisaBanco" placeholder="Nome ou matrícula"></div>
@@ -260,7 +263,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
           <div class="actions" style="margin:0"><button id="btnPesquisarBanco" class="btn-blue">Pesquisar</button><button id="btnImprimirBanco" class="btn-orange">Imprimir</button></div>
         </div>
         <table>
-          <thead><tr><th>Colaborador</th><th>Matrícula</th><th>Saldo</th><th>Atualização</th><th>Status</th></tr></thead>
+          <thead><tr><th>Colaborador</th><th>Matrícula</th><th>Saldo RH</th><th>Folgas</th><th>Saldo disponível</th><th>Atualização</th><th>Status</th></tr></thead>
           <tbody id="tbodyBanco"></tbody>
         </table>
       </div>
@@ -451,6 +454,8 @@ function subscribeData(){
     onSnapshot(query(collection(db,"solicitacoes_folga"),orderBy("data","asc")),snap=>{
       state.folgas=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFolgas();
+      renderBanco();
+      atualizarAvisoSaldoFolga();
       renderDashboard();
     },err=>alert("Erro ao carregar folgas: "+err.message))
   );
@@ -460,6 +465,7 @@ function subscribeData(){
     onSnapshot(query(collection(db,"banco_horas"),orderBy("nome","asc")),snap=>{
       state.bancoHoras=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderBanco();
+      atualizarAvisoSaldoFolga();
       renderDashboard();
     },err=>alert("Erro ao carregar banco de horas: "+err.message))
   );
@@ -571,23 +577,98 @@ function saldoFormatado(valor){
   return `${sinal}${String(Math.floor(abs/60)).padStart(2,"0")}:${String(abs%60).padStart(2,"0")}`;
 }
 
+
+const HORAS_POR_FOLGA_MINUTOS = 7 * 60;
+const LIMITE_NEGATIVO_MINUTOS = -7 * 60;
+
+function normalizarNome(valor){
+  return String(valor??"")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g," ");
+}
+
+function localizarBancoDoColaborador(nome){
+  const nomeNormalizado=normalizarNome(nome);
+  const colaborador=state.colaboradores.find(c=>normalizarNome(c.nome)===nomeNormalizado);
+  if(!colaborador)return null;
+
+  return state.bancoHoras.find(b=>
+    b.colaboradorId===colaborador.id
+    || (colaborador.matricula && b.matricula===colaborador.matricula)
+    || normalizarNome(b.nome)===nomeNormalizado
+  )||null;
+}
+
+function quantidadeFolgasDescontadas(nome, ignorarId=null){
+  const nomeNormalizado=normalizarNome(nome);
+  return state.folgas.filter(f=>
+    f.id!==ignorarId
+    && normalizarNome(f.nome)===nomeNormalizado
+    && ["Pendente","Aprovada"].includes(f.status)
+  ).length;
+}
+
+function saldoDisponivelMinutos(nome, ignorarId=null){
+  const banco=localizarBancoDoColaborador(nome);
+  if(!banco)return null;
+  return saldoParaMinutos(banco.saldo)
+    - quantidadeFolgasDescontadas(nome,ignorarId)*HORAS_POR_FOLGA_MINUTOS;
+}
+
+function atualizarAvisoSaldoFolga(){
+  const nome=$("folgaNome").value.trim();
+  const box=$("avisoSaldoFolga");
+  if(!nome){
+    box.textContent="Selecione um colaborador para consultar o saldo disponível. Cada solicitação reserva 07:00.";
+    box.style.background="#eef6ff";
+    box.style.color="#073b63";
+    return;
+  }
+
+  const saldo=saldoDisponivelMinutos(nome);
+  if(saldo===null){
+    box.textContent="Este colaborador ainda não possui saldo de banco de horas importado. A solicitação ficará bloqueada.";
+    box.style.background="#fee2e2";
+    box.style.color="#991b1b";
+    return;
+  }
+
+  const projetado=saldo-HORAS_POR_FOLGA_MINUTOS;
+  const podeSolicitar=projetado>=LIMITE_NEGATIVO_MINUTOS;
+  box.innerHTML=`Saldo disponível atual: <b>${saldoFormatado(saldo/60)}</b> • Após a solicitação: <b>${saldoFormatado(projetado/60)}</b>`;
+  box.style.background=podeSolicitar?"#dcfce7":"#fee2e2";
+  box.style.color=podeSolicitar?"#166534":"#991b1b";
+}
+
 function renderBanco(list=state.bancoHoras){
   const idsEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>c.id));
   const matriculasEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>String(c.matricula||"").trim()).filter(Boolean));
-  const nomesEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>String(c.nome||"").trim().toUpperCase()));
+  const nomesEquipe=new Set(state.colaboradores.filter(c=>c.ativo!==false).map(c=>normalizarNome(c.nome)));
+
   list=list.filter(b=>
     (b.colaboradorId && idsEquipe.has(b.colaboradorId))
     || (b.matricula && matriculasEquipe.has(String(b.matricula).trim()))
-    || nomesEquipe.has(String(b.nome||"").trim().toUpperCase())
+    || nomesEquipe.has(normalizarNome(b.nome))
   );
+
   $("tbodyBanco").innerHTML=list.map(b=>{
-    const min=saldoParaMinutos(b.saldo);
+    const saldoBase=saldoParaMinutos(b.saldo);
+    const qtdFolgas=quantidadeFolgasDescontadas(b.nome);
+    const desconto=qtdFolgas*HORAS_POR_FOLGA_MINUTOS;
+    const disponivel=saldoBase-desconto;
+    const bloqueado=disponivel<=LIMITE_NEGATIVO_MINUTOS;
+
     return `<tr>
       <td data-label="Colaborador">${b.nome||""}</td>
       <td data-label="Matrícula">${b.matricula||""}</td>
-      <td data-label="Saldo"><span class="${min<0?"banco-negativo":"banco-positivo"}">${saldoFormatado(b.saldo)}</span></td>
+      <td data-label="Saldo RH"><b>${saldoFormatado(b.saldo)}</b></td>
+      <td data-label="Folgas">${qtdFolgas} × 07:00<br><span style="font-size:11px;color:var(--muted)">-${saldoFormatado(desconto/60)}</span></td>
+      <td data-label="Saldo disponível"><span class="${disponivel<0?"banco-negativo":"banco-positivo"}">${saldoFormatado(disponivel/60)}</span></td>
       <td data-label="Atualização">${b.dataReferencia?formatDate(b.dataReferencia):""}</td>
-      <td data-label="Status">${min<0?'<span class="badge reprovada">Negativo</span>':'<span class="badge aprovada">Controlado</span>'}</td>
+      <td data-label="Status">${bloqueado?'<span class="badge reprovada">Bloqueado para nova folga</span>':disponivel<0?'<span class="badge pendente">Negativo permitido</span>':'<span class="badge aprovada">Disponível</span>'}</td>
     </tr>`;
   }).join("");
 }
@@ -597,7 +678,7 @@ function renderDashboard(){
   if($("bancoEquipeCadastrada")) $("bancoEquipeCadastrada").textContent=state.colaboradores.filter(c=>c.ativo!==false).length;
   $("kpiFolgasPendentes").textContent=state.folgas.filter(f=>f.status==="Pendente").length;
   $("kpiFeriasProximas").textContent=state.ferias.filter(f=>["Programada","Aprovada"].includes(f.status)).length;
-  $("kpiBancoNegativo").textContent=state.bancoHoras.filter(b=>saldoParaMinutos(b.saldo)<0).length;
+  $("kpiBancoNegativo").textContent=state.bancoHoras.filter(b=>{const s=saldoDisponivelMinutos(b.nome);return s!==null&&s<0;}).length;
   $("kpiTreinamentosVencer").textContent=state.treinamentos.filter(t=>["vencer","vencido"].includes(statusTreinamento(t.validade).chave)).length;
 
   const ausencias=[
@@ -610,7 +691,7 @@ function renderDashboard(){
     : '<span style="color:var(--muted)">Sem ausências cadastradas.</span>';
 
   const alertas=[];
-  const negativos=state.bancoHoras.filter(b=>saldoParaMinutos(b.saldo)<0);
+  const negativos=state.bancoHoras.filter(b=>{const s=saldoDisponivelMinutos(b.nome);return s!==null&&s<0;});
   if(negativos.length)alertas.push(`${negativos.length} colaborador(es) com banco negativo.`);
   const pendentes=state.folgas.filter(f=>f.status==="Pendente").length;
   if(pendentes)alertas.push(`${pendentes} solicitação(ões) aguardando análise.`);
@@ -698,17 +779,58 @@ $("btnEnviarFolga").addEventListener("click",async()=>{
   const data=$("folgaData").value;
   const periodo=document.querySelector('input[name="periodoFolga"]:checked')?.value||"Manhã";
   const justificativa=$("folgaJustificativa").value.trim();
-  if(!nome||!data){alert("Informe colaborador e data.");return;}
+
+  if(!nome||!data){
+    alert("Informe colaborador e data.");
+    return;
+  }
+
+  const colaborador=state.colaboradores.find(c=>normalizarNome(c.nome)===normalizarNome(nome)&&c.ativo!==false);
+  if(!colaborador){
+    alert("Colaborador não encontrado entre as pessoas sob sua gestão.");
+    return;
+  }
+
+  const saldoAtual=saldoDisponivelMinutos(colaborador.nome);
+  if(saldoAtual===null){
+    alert("Não é possível solicitar folga: o colaborador ainda não possui saldo importado no Banco de Horas.");
+    return;
+  }
+
+  const saldoProjetado=saldoAtual-HORAS_POR_FOLGA_MINUTOS;
+  if(saldoProjetado<LIMITE_NEGATIVO_MINUTOS){
+    alert(
+      `Solicitação bloqueada.\n\nSaldo disponível: ${saldoFormatado(saldoAtual/60)}\n`+
+      `Saldo após descontar 07:00: ${saldoFormatado(saldoProjetado/60)}\n\n`+
+      "O saldo não pode ficar abaixo de -07:00."
+    );
+    return;
+  }
 
   await addDoc(collection(db,"solicitacoes_folga"),{
-    nome,data,periodo,justificativa,status:"Pendente",equipe:"E",
-    criadoPor:state.user.uid,criadoEm:serverTimestamp()
+    nome:colaborador.nome,
+    colaboradorId:colaborador.id,
+    data,
+    periodo,
+    justificativa,
+    horasDebito:7,
+    status:"Pendente",
+    equipe:"E",
+    criadoPor:state.user.uid,
+    criadoEm:serverTimestamp()
   });
+
   clearFolgaForm();
-  alert("Solicitação enviada.");
+  atualizarAvisoSaldoFolga();
+  alert(
+    `Solicitação enviada.\n\nForam reservadas 07:00 do banco de horas.\n`+
+    `Novo saldo disponível: ${saldoFormatado(saldoProjetado/60)}`
+  );
 });
 
 $("btnLimparFolga").addEventListener("click",clearFolgaForm);
+$("folgaNome").addEventListener("input",atualizarAvisoSaldoFolga);
+$("folgaNome").addEventListener("change",atualizarAvisoSaldoFolga);
 
 $("btnPesquisarFolgas").addEventListener("click",()=>{
   const ini=$("filtroInicio").value, fim=$("filtroFim").value;
@@ -937,7 +1059,8 @@ $("btnPesquisarBanco").addEventListener("click",()=>{
   const filtro=$("filtroBanco").value;
   renderBanco(state.bancoHoras.filter(b=>{
     const atendeTexto=!termo||String(b.nome||"").includes(termo)||String(b.matricula||"").includes(termo);
-    const negativo=saldoParaMinutos(b.saldo)<0;
+    const saldo=saldoDisponivelMinutos(b.nome);
+    const negativo=saldo!==null&&saldo<0;
     const atendeStatus=!filtro||(filtro==="negativo"?negativo:!negativo);
     return atendeTexto&&atendeStatus;
   }));
