@@ -506,6 +506,45 @@ document.getElementById('excluir').onclick=async()=>{
   if(!confirm(`Excluir ${reprovadas.length} registro(s) reprovado(s)?`))return;
   await Promise.all(reprovadas.map(r=>deleteDoc(doc(db,'solicitacoes_folga',r.id))));
 }
+
+const colaboradores = [
+  'ALEXANDRE MODESTO DE OLIVEIRA',
+  'ALVARO SOUZA DA SILVA',
+  'DAVID FERNANDES DA SILVA',
+  'FRANCISCO HELTON MENDES VASCONCELOS',
+  'IZAQUIEL SILVA MAGALHAES',
+  'JARDIEL LOPES RODRIGUES',
+  'RAIMUNDO SOARES RAMOS NETO'
+];
+
+function atualizarListaColaboradores(){
+  const nomes = [...new Set([
+    ...colaboradores,
+    ...lista.map(r => r.nome).filter(Boolean),
+    ...ferias.map(f => f.nome).filter(Boolean)
+  ])].sort();
+
+  colaboradores.length = 0;
+  colaboradores.push(...nomes);
+
+  const listaSolicitacao = document.getElementById('listaColaboradores');
+  if(listaSolicitacao){
+    listaSolicitacao.innerHTML = nomes.map(n => `<option value="${n}">`).join('');
+  }
+
+  const listaFerias = document.getElementById('listaColaboradoresFerias');
+  if(listaFerias){
+    listaFerias.innerHTML = nomes.map(n => `<option value="${n}">`).join('');
+  }
+
+  const editNome = document.getElementById('editNome');
+  if(editNome){
+    const valorAtual = editNome.value;
+    editNome.innerHTML = nomes.map(n => `<option>${n}</option>`).join('');
+    if(nomes.includes(valorAtual)) editNome.value = valorAtual;
+  }
+}
+
 atualizarListaColaboradores();
 
 document.getElementById('adicionarColaborador').onclick=()=>{
@@ -603,6 +642,7 @@ function iniciarEscutas(){
   onSnapshot(query(collection(db,'solicitacoes_folga'),orderBy('data','asc')),snap=>{
     lista.length=0;
     snap.forEach(d=>lista.push({id:d.id,...d.data()}));
+    atualizarListaColaboradores();
     render();
     aplicarPermissoes();
   },erro=>alert('Erro ao carregar folgas: '+erro.message));
@@ -610,6 +650,7 @@ function iniciarEscutas(){
   onSnapshot(query(collection(db,'ferias'),orderBy('inicio','asc')),snap=>{
     ferias.length=0;
     snap.forEach(d=>ferias.push({id:d.id,...d.data()}));
+    atualizarListaColaboradores();
     renderFerias();
     aplicarPermissoes();
   },erro=>alert('Erro ao carregar férias: '+erro.message));
