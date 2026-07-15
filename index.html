@@ -438,6 +438,7 @@ const state = {
   treinamentoEditId: null,
   folgaEditId: null,
   feriasEditId: null,
+  colaboradorEditId: null,
   unsubscribers: []
 };
 
@@ -605,6 +606,7 @@ function renderCollaborators(){
       <td data-label="Veículo">${c.veiculo||""}</td>
       <td data-label="Horário">${c.horario||""}</td>
       <td data-label="Ações" class="no-print">
+        <button class="btn-edit" data-action="edit-colaborador" data-id="${c.id}">Editar</button>
         <button class="btn-red" data-action="delete-colaborador" data-id="${c.id}">Excluir</button>
       </td>
     </tr>`).join("");
@@ -810,6 +812,7 @@ function clearFeriasForm(){
 }
 
 function clearCollaboratorForm(){
+  state.colaboradorEditId=null;
   $("colaboradorNome").value="";
   $("colaboradorMatricula").value="";
   $("colaboradorFuncao").value="";
@@ -819,6 +822,7 @@ function clearCollaboratorForm(){
   $("colaboradorVeiculo").value="";
   $("colaboradorMotorista").value="";
   $("colaboradorHorario").value="";
+  $("btnSalvarColaborador").textContent="Adicionar colaborador";
 }
 
 $("btnEntrar").addEventListener("click",async()=>{
@@ -989,9 +993,14 @@ $("tbodyFerias").addEventListener("click",async e=>{
 
 $("btnSalvarColaborador").addEventListener("click",async()=>{
   if(!isSupervisor())return;
+
   const nome=$("colaboradorNome").value.trim().toUpperCase();
-  if(!nome){alert("Informe o nome.");return;}
-  await addDoc(collection(db,"colaboradores"),{
+  if(!nome){
+    alert("Informe o nome.");
+    return;
+  }
+
+  const payload={
     nome,
     matricula:$("colaboradorMatricula").value.trim(),
     funcao:$("colaboradorFuncao").value.trim(),
@@ -1001,185 +1010,56 @@ $("btnSalvarColaborador").addEventListener("click",async()=>{
     veiculo:$("colaboradorVeiculo").value.trim(),
     motorista:$("colaboradorMotorista").value.trim(),
     horario:$("colaboradorHorario").value,
-    equipe:"E",ativo:true,criadoPor:state.user.uid,criadoEm:serverTimestamp()
-  });
+    equipe:"E",
+    ativo:true,
+    alteradoPor:state.user.uid,
+    alteradoEm:serverTimestamp()
+  };
+
+  if(state.colaboradorEditId){
+    await updateDoc(doc(db,"colaboradores",state.colaboradorEditId),payload);
+    alert("Cadastro atualizado com sucesso.");
+  }else{
+    await addDoc(collection(db,"colaboradores"),{
+      ...payload,
+      criadoPor:state.user.uid,
+      criadoEm:serverTimestamp()
+    });
+    alert("Colaborador adicionado com sucesso.");
+  }
+
   clearCollaboratorForm();
 });
+
 $("btnLimparColaborador").addEventListener("click",clearCollaboratorForm);
 $("tbodyColaboradores").addEventListener("click",async e=>{
-  const btn=e.target.closest("button[data-action='delete-colaborador']");
-  if(btn&&confirm("Excluir colaborador?"))await deleteDoc(doc(db,"colaboradores",btn.dataset.id));
-});
+  const btn=e.target.closest("button[data-action]");
+  if(!btn)return;
 
+  const id=btn.dataset.id;
+  const colaborador=state.colaboradores.find(c=>c.id===id);
 
-$("arquivoBanco").addEventListener("change",async e=>{
-  if(!isSupervisor())return;
-  const file=e.target.files?.[0];
-  if(!file)return;
-
-  const equipeAtiva=state.colaboradores.filter(c=>c.ativo!==false);
-  if(!equipeAtiva.length){
-    alert("Cadastre primeiro os colaboradores sob sua gestão no módulo Colaboradores.");
-    e.target.value="";
+  if(btn.dataset.action==="edit-colaborador"&&colaborador){
+    state.colaboradorEditId=id;
+    $("colaboradorNome").value=colaborador.nome||"";
+    $("colaboradorMatricula").value=colaborador.matricula||"";
+    $("colaboradorFuncao").value=colaborador.funcao||"";
+    $("colaboradorRegime").value=colaborador.regime||"TURNO";
+    $("colaboradorContato").value=colaborador.contato||"";
+    $("colaboradorEndereco").value=colaborador.endereco||"";
+    $("colaboradorVeiculo").value=colaborador.veiculo||"";
+    $("colaboradorMotorista").value=colaborador.motorista||"";
+    $("colaboradorHorario").value=colaborador.horario||"";
+    $("btnSalvarColaborador").textContent="Salvar alteração";
+    window.scrollTo({top:0,behavior:"smooth"});
     return;
   }
 
-  const normalizarTexto=valor=>String(valor??"")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g," ");
-
-  const localizarColaborador=(nome,matricula)=>{
-    const mat=String(matricula??"").trim();
-    const nomeNormalizado=normalizarTexto(nome);
-
-    return equipeAtiva.find(c=>{
-      const matCadastro=String(c.matricula??"").trim();
-      const nomeCadastro=normalizarTexto(c.nome);
-      return (mat && matCadastro && mat===matCadastro)
-        || (nomeNormalizado && nomeCadastro===nomeNormalizado);
-    });
-  };
-
-  const reader=new FileReader();
-  reader.onload=async ev=>{
-    try{
-      const wb=XLSX.read(ev.target.result,{type:"array"});
-      const rows=XLSX.utils.sheet_to_json(
-        wb.Sheets[wb.SheetNames[0]],
-        {defval:""}
-      );
-
-      let importados=0;
-      let ignorados=0;
-      const naoEncontrados=[];
-
-      for(const row of rows){
-        const nomePlanilha=row.Nome||row.NOME||row.Colaborador||row.COLABORADOR||"";
-        const matriculaPlanilha=row.Matrícula||row.MATRÍCULA||row.Matricula||row.MATRICULA||"";
-        const saldo=row.Saldo??row.SALDO??row["Banco de Horas"]??row.BANCO??row["SALDO BANCO"]??row["Saldo Banco"]??"";
-
-        if(!nomePlanilha && !matriculaPlanilha)continue;
-        if(saldo==="")continue;
-
-        const colaborador=localizarColaborador(nomePlanilha,matriculaPlanilha);
-        if(!colaborador){
-          ignorados++;
-          naoEncontrados.push(String(nomePlanilha||matriculaPlanilha));
-          continue;
-        }
-
-        const existente=state.bancoHoras.find(b=>
-          (colaborador.matricula && b.matricula===colaborador.matricula)
-          || b.colaboradorId===colaborador.id
-          || normalizarTexto(b.nome)===normalizarTexto(colaborador.nome)
-        );
-
-        const payload={
-          colaboradorId:colaborador.id,
-          nome:colaborador.nome,
-          matricula:colaborador.matricula||String(matriculaPlanilha).trim(),
-          saldo:String(saldo),
-          dataReferencia:new Date().toISOString().slice(0,10),
-          equipe:"E",
-          sobGestao:true,
-          alteradoPor:state.user.uid,
-          alteradoEm:serverTimestamp()
-        };
-
-        if(existente){
-          await updateDoc(doc(db,"banco_horas",existente.id),payload);
-        }else{
-          await addDoc(collection(db,"banco_horas"),{
-            ...payload,
-            criadoPor:state.user.uid,
-            criadoEm:serverTimestamp()
-          });
-        }
-        importados++;
-      }
-
-      $("bancoImportadosUltimo").textContent=importados;
-      $("bancoIgnoradosUltimo").textContent=ignorados;
-
-      let mensagem=`Importação concluída.\n\nColaboradores da Equipe E importados: ${importados}\nRegistros ignorados: ${ignorados}`;
-      if(naoEncontrados.length){
-        const amostra=[...new Set(naoEncontrados)].slice(0,8).join("\n• ");
-        mensagem+=`\n\nNão encontrados no cadastro:\n• ${amostra}`;
-        if(naoEncontrados.length>8)mensagem+=`\n• ... e mais ${naoEncontrados.length-8}`;
-      }
-      alert(mensagem);
-      e.target.value="";
-    }catch(err){
-      alert("Falha na importação: "+err.message);
+  if(btn.dataset.action==="delete-colaborador"){
+    if(confirm("Excluir colaborador?")){
+      await deleteDoc(doc(db,"colaboradores",id));
+      if(state.colaboradorEditId===id)clearCollaboratorForm();
     }
-  };
-  reader.readAsArrayBuffer(file);
-});
-
-$("btnPesquisarBanco").addEventListener("click",()=>{
-  const termo=$("pesquisaBanco").value.trim().toUpperCase();
-  const filtro=$("filtroBanco").value;
-  renderBanco(state.bancoHoras.filter(b=>{
-    const atendeTexto=!termo||String(b.nome||"").includes(termo)||String(b.matricula||"").includes(termo);
-    const saldo=saldoDisponivelMinutos(b.nome);
-    const negativo=saldo!==null&&saldo<0;
-    const atendeStatus=!filtro||(filtro==="negativo"?negativo:!negativo);
-    return atendeTexto&&atendeStatus;
-  }));
-});
-
-$("btnImprimirBanco").addEventListener("click",()=>{setView("banco");window.print();});
-
-
-$("btnSalvarTreinamento").addEventListener("click",async()=>{
-  if(!isGestor())return;
-  const nome=$("treinamentoNome").value.trim().toUpperCase();
-  const titulo=$("treinamentoTitulo").value.trim();
-  const data=$("treinamentoData").value;
-  const validade=$("treinamentoValidade").value;
-  if(!nome||!titulo||!data){alert("Informe colaborador, treinamento e data.");return;}
-
-  const payload={nome,titulo,data,validade,equipe:"E",alteradoPor:state.user.uid,alteradoEm:serverTimestamp()};
-  if(state.treinamentoEditId){
-    await updateDoc(doc(db,"treinamentos",state.treinamentoEditId),payload);
-  }else{
-    await addDoc(collection(db,"treinamentos"),{...payload,criadoPor:state.user.uid,criadoEm:serverTimestamp()});
-  }
-  clearTrainingForm();
-});
-
-$("btnLimparTreinamento").addEventListener("click",clearTrainingForm);
-$("btnImprimirTreinamentos").addEventListener("click",()=>{setView("treinamentos");window.print();});
-
-$("btnPesquisarTreinamentos").addEventListener("click",()=>{
-  const termo=$("pesquisaTreinamento").value.trim().toUpperCase();
-  const filtro=$("filtroTreinamento").value;
-  renderTreinamentos(state.treinamentos.filter(t=>{
-    const atendeTexto=!termo||String(t.nome||"").includes(termo)||String(t.titulo||"").toUpperCase().includes(termo);
-    const atendeStatus=!filtro||statusTreinamento(t.validade).chave===filtro;
-    return atendeTexto&&atendeStatus;
-  }));
-});
-
-$("tbodyTreinamentos").addEventListener("click",async e=>{
-  const btn=e.target.closest("button[data-action]");
-  if(!btn)return;
-  const id=btn.dataset.id;
-  const item=state.treinamentos.find(t=>t.id===id);
-  if(btn.dataset.action==="edit-treinamento"&&item){
-    state.treinamentoEditId=id;
-    $("treinamentoNome").value=item.nome||"";
-    $("treinamentoTitulo").value=item.titulo||"";
-    $("treinamentoData").value=item.data||"";
-    $("treinamentoValidade").value=item.validade||"";
-    $("btnSalvarTreinamento").textContent="Salvar alteração";
-    window.scrollTo({top:0,behavior:"smooth"});
-  }
-  if(btn.dataset.action==="delete-treinamento"&&isSupervisor()){
-    if(confirm("Excluir este treinamento?"))await deleteDoc(doc(db,"treinamentos",id));
   }
 });
 
