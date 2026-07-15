@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal Equipe E - Folgas e Férias</title>
+<title>Portal Equipe E - Gestão Integrada</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --azul:#1017d8;--azul-escuro:#073b63;--laranja:#ff7417;--verde:#15803d;
@@ -70,6 +71,17 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
   tr{border:1px solid var(--linha);border-radius:12px;margin:10px 0;overflow:hidden}
   td:before{content:attr(data-label);display:block;font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
 }
+
+.dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:white;border:1px solid var(--linha);border-radius:15px;padding:16px}
+.kpi .value{font-size:30px;font-weight:900;color:var(--azul-escuro)}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:800}
+.dashboard-columns{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.import-box{background:#f8fbfe;border:1px dashed #9fb3c8;border-radius:14px;padding:16px}
+.banco-negativo{color:#991b1b;font-weight:900}.banco-positivo{color:#166534;font-weight:900}
+@media(max-width:900px){.dashboard-grid{grid-template-columns:repeat(2,1fr)}.dashboard-columns{grid-template-columns:1fr}}
+@media(max-width:520px){.dashboard-grid{grid-template-columns:1fr}}
+
 @media print{
   @page{size:A4 landscape;margin:9mm}
   .no-print,#pedido,.tabs,.topbar{display:none!important}
@@ -115,13 +127,35 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 
   <main class="container">
     <nav class="tabs no-print">
-      <button class="tab active" data-view="pedido">Pedido de Folga</button>
+      <button class="tab active" data-view="dashboard">Dashboard</button>
+      <button class="tab" data-view="pedido">Pedido de Folga</button>
       <button class="tab" data-view="aprovacao">Aprovação</button>
       <button class="tab" data-view="ferias">Férias</button>
+      <button class="tab" data-view="banco">Banco de Horas</button>
       <button class="tab supervisor-only" data-view="colaboradores">Colaboradores</button>
     </nav>
 
-    <section id="pedido" class="view active">
+
+    <section id="dashboard" class="view active">
+      <div class="dashboard-grid">
+        <div class="kpi"><div id="kpiColaboradores" class="value">0</div><div class="label">Colaboradores</div></div>
+        <div class="kpi"><div id="kpiFolgasPendentes" class="value">0</div><div class="label">Folgas pendentes</div></div>
+        <div class="kpi"><div id="kpiFeriasProximas" class="value">0</div><div class="label">Férias programadas</div></div>
+        <div class="kpi"><div id="kpiBancoNegativo" class="value">0</div><div class="label">Banco negativo</div></div>
+      </div>
+      <div class="dashboard-columns">
+        <div class="card">
+          <div class="section-head"><div class="icon">📅</div><h2>Próximas ausências</h2></div>
+          <div id="proximasAusencias"></div>
+        </div>
+        <div class="card">
+          <div class="section-head"><div class="icon">!</div><h2>Alertas</h2></div>
+          <div id="alertasDashboard"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pedido" class="view">
       <div class="card">
         <div class="section-head"><div class="icon">+</div><h2>Solicitar folga</h2></div>
         <div class="grid">
@@ -199,6 +233,27 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
       </div>
     </section>
 
+
+    <section id="banco" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">⏱</div><h2>Banco de Horas</h2></div>
+        <div class="import-box supervisor-only no-print">
+          <label>Importar planilha semanal do RH (XLSX, XLS ou CSV)</label>
+          <input id="arquivoBanco" type="file" accept=".xlsx,.xls,.csv">
+          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">A planilha pode conter as colunas Nome, Matrícula e Saldo/Banco de Horas.</p>
+        </div>
+        <div class="filters no-print" style="margin-top:14px">
+          <div><label>Pesquisar colaborador</label><input id="pesquisaBanco" placeholder="Nome ou matrícula"></div>
+          <div><label>Status</label><select id="filtroBanco"><option value="">Todos</option><option value="positivo">Positivo/zerado</option><option value="negativo">Negativo</option></select></div>
+          <div class="actions" style="margin:0"><button id="btnPesquisarBanco" class="btn-blue">Pesquisar</button><button id="btnImprimirBanco" class="btn-orange">Imprimir</button></div>
+        </div>
+        <table>
+          <thead><tr><th>Colaborador</th><th>Matrícula</th><th>Saldo</th><th>Atualização</th><th>Status</th></tr></thead>
+          <tbody id="tbodyBanco"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="colaboradores" class="view">
       <div class="card">
         <div class="section-head"><div class="icon">👥</div><h2>Cadastro de Colaboradores</h2></div>
@@ -263,6 +318,7 @@ const state = {
   colaboradores: [],
   folgas: [],
   ferias: [],
+  bancoHoras: [],
   folgaEditId: null,
   feriasEditId: null,
   unsubscribers: []
@@ -319,6 +375,7 @@ function subscribeData(){
       state.colaboradores=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderCollaborators();
       populateCollaborators();
+      renderDashboard();
     },err=>alert("Erro ao carregar colaboradores: "+err.message))
   );
 
@@ -326,7 +383,17 @@ function subscribeData(){
     onSnapshot(query(collection(db,"solicitacoes_folga"),orderBy("data","asc")),snap=>{
       state.folgas=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFolgas();
+      renderDashboard();
     },err=>alert("Erro ao carregar folgas: "+err.message))
+  );
+
+
+  state.unsubscribers.push(
+    onSnapshot(query(collection(db,"banco_horas"),orderBy("nome","asc")),snap=>{
+      state.bancoHoras=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderBanco();
+      renderDashboard();
+    },err=>alert("Erro ao carregar banco de horas: "+err.message))
   );
 
   state.unsubscribers.push(
@@ -334,6 +401,7 @@ function subscribeData(){
       state.ferias=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFerias();
       populateCollaborators();
+      renderDashboard();
     },err=>alert("Erro ao carregar férias: "+err.message))
   );
 }
@@ -401,6 +469,64 @@ function renderCollaborators(){
         <button class="btn-red" data-action="delete-colaborador" data-id="${c.id}">Excluir</button>
       </td>
     </tr>`).join("");
+}
+
+
+function saldoParaMinutos(valor){
+  const texto=String(valor??"0").trim().replace(",",".");
+  if(/^[-+]?\d+:\d{1,2}$/.test(texto)){
+    const negativo=texto.startsWith("-");
+    const limpo=texto.replace(/^[-+]/,"");
+    const [h,m]=limpo.split(":").map(Number);
+    return (negativo?-1:1)*(h*60+m);
+  }
+  const num=Number(texto);
+  return Number.isFinite(num)?Math.round(num*60):0;
+}
+
+function saldoFormatado(valor){
+  const min=saldoParaMinutos(valor);
+  const sinal=min<0?"-":"";
+  const abs=Math.abs(min);
+  return `${sinal}${String(Math.floor(abs/60)).padStart(2,"0")}:${String(abs%60).padStart(2,"0")}`;
+}
+
+function renderBanco(list=state.bancoHoras){
+  $("tbodyBanco").innerHTML=list.map(b=>{
+    const min=saldoParaMinutos(b.saldo);
+    return `<tr>
+      <td data-label="Colaborador">${b.nome||""}</td>
+      <td data-label="Matrícula">${b.matricula||""}</td>
+      <td data-label="Saldo"><span class="${min<0?"banco-negativo":"banco-positivo"}">${saldoFormatado(b.saldo)}</span></td>
+      <td data-label="Atualização">${b.dataReferencia?formatDate(b.dataReferencia):""}</td>
+      <td data-label="Status">${min<0?'<span class="badge reprovada">Negativo</span>':'<span class="badge aprovada">Controlado</span>'}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderDashboard(){
+  $("kpiColaboradores").textContent=state.colaboradores.length;
+  $("kpiFolgasPendentes").textContent=state.folgas.filter(f=>f.status==="Pendente").length;
+  $("kpiFeriasProximas").textContent=state.ferias.filter(f=>["Programada","Aprovada"].includes(f.status)).length;
+  $("kpiBancoNegativo").textContent=state.bancoHoras.filter(b=>saldoParaMinutos(b.saldo)<0).length;
+
+  const ausencias=[
+    ...state.folgas.filter(f=>f.status==="Aprovada").map(f=>({nome:f.nome,data:f.data,tipo:`Folga - ${f.periodo||""}`})),
+    ...state.ferias.filter(f=>["Programada","Aprovada"].includes(f.status)).map(f=>({nome:f.nome,data:f.inicio,tipo:"Férias"}))
+  ].sort((a,b)=>a.data.localeCompare(b.data)).slice(0,8);
+
+  $("proximasAusencias").innerHTML=ausencias.length
+    ? ausencias.map(a=>`<div style="border-left:4px solid var(--azul);padding:8px 10px;margin:8px 0;background:#f8fbfe;border-radius:8px"><b>${a.nome}</b><br><span style="font-size:12px;color:var(--muted)">${formatDate(a.data)} • ${a.tipo}</span></div>`).join("")
+    : '<span style="color:var(--muted)">Sem ausências cadastradas.</span>';
+
+  const alertas=[];
+  const negativos=state.bancoHoras.filter(b=>saldoParaMinutos(b.saldo)<0);
+  if(negativos.length)alertas.push(`${negativos.length} colaborador(es) com banco negativo.`);
+  const pendentes=state.folgas.filter(f=>f.status==="Pendente").length;
+  if(pendentes)alertas.push(`${pendentes} solicitação(ões) aguardando análise.`);
+  $("alertasDashboard").innerHTML=alertas.length
+    ? alertas.map(a=>`<div style="padding:9px;background:#fff7ed;border-left:4px solid var(--laranja);border-radius:8px;margin:8px 0">${a}</div>`).join("")
+    : '<span class="badge aprovada">Sem alertas</span>';
 }
 
 function clearFolgaForm(){
@@ -567,6 +693,50 @@ $("tbodyColaboradores").addEventListener("click",async e=>{
   const btn=e.target.closest("button[data-action='delete-colaborador']");
   if(btn&&confirm("Excluir colaborador?"))await deleteDoc(doc(db,"colaboradores",btn.dataset.id));
 });
+
+
+$("arquivoBanco").addEventListener("change",async e=>{
+  if(!isSupervisor())return;
+  const file=e.target.files?.[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:"array"});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+      let gravados=0;
+      for(const row of rows){
+        const nome=String(row.Nome||row.NOME||row.Colaborador||row.COLABORADOR||"").trim().toUpperCase();
+        const matricula=String(row.Matrícula||row.MATRÍCULA||row.Matricula||row.MATRICULA||"").trim();
+        const saldo=row.Saldo??row.SALDO??row["Banco de Horas"]??row.BANCO??row["SALDO BANCO"]??"";
+        if(!nome||saldo==="")continue;
+        const existente=state.bancoHoras.find(b=>(matricula&&b.matricula===matricula)||b.nome===nome);
+        const payload={nome,matricula,saldo:String(saldo),dataReferencia:new Date().toISOString().slice(0,10),equipe:"E",alteradoPor:state.user.uid,alteradoEm:serverTimestamp()};
+        if(existente)await updateDoc(doc(db,"banco_horas",existente.id),payload);
+        else await addDoc(collection(db,"banco_horas"),{...payload,criadoPor:state.user.uid,criadoEm:serverTimestamp()});
+        gravados++;
+      }
+      alert(`Importação concluída: ${gravados} registro(s).`);
+      e.target.value="";
+    }catch(err){
+      alert("Falha na importação: "+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+$("btnPesquisarBanco").addEventListener("click",()=>{
+  const termo=$("pesquisaBanco").value.trim().toUpperCase();
+  const filtro=$("filtroBanco").value;
+  renderBanco(state.bancoHoras.filter(b=>{
+    const atendeTexto=!termo||String(b.nome||"").includes(termo)||String(b.matricula||"").includes(termo);
+    const negativo=saldoParaMinutos(b.saldo)<0;
+    const atendeStatus=!filtro||(filtro==="negativo"?negativo:!negativo);
+    return atendeTexto&&atendeStatus;
+  }));
+});
+
+$("btnImprimirBanco").addEventListener("click",()=>{setView("banco");window.print();});
 
 onAuthStateChanged(auth,async user=>{
   if(!user){
