@@ -350,7 +350,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
         </div>
 
         <div style="margin-top:12px;padding:10px;border-radius:10px;background:#eef6ff;color:#073b63;font-size:13px">
-          Serão exibidos somente os colaboradores ativos que irão à usina. Folgas aprovadas e férias serão retiradas automaticamente.
+          Serão exibidos somente os colaboradores ativos do regime de turno que irão à usina. Colaboradores ADM, folgas aprovadas e férias serão retirados automaticamente.
         </div>
 
         <div id="resultadoRotas" style="margin-top:16px"></div>
@@ -364,6 +364,13 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
           <div><label>Nome</label><input id="colaboradorNome"></div>
           <div><label>Matrícula</label><input id="colaboradorMatricula"></div>
           <div><label>Função</label><input id="colaboradorFuncao"></div>
+          <div>
+            <label>Regime de trabalho</label>
+            <select id="colaboradorRegime">
+              <option value="TURNO">Turno</option>
+              <option value="ADM">ADM</option>
+            </select>
+          </div>
           <div><label>Contato</label><input id="colaboradorContato"></div>
           <div><label>Endereço</label><input id="colaboradorEndereco"></div>
           <div><label>Veículo padrão</label><input id="colaboradorVeiculo" placeholder="Ex.: Veículo 1"></div>
@@ -375,7 +382,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
           <button id="btnLimparColaborador" class="btn-gray">Limpar</button>
         </div>
         <table>
-          <thead><tr><th>Nome</th><th>Matrícula</th><th>Função</th><th>Contato</th><th>Veículo</th><th>Horário</th><th class="no-print">Ações</th></tr></thead>
+          <thead><tr><th>Nome</th><th>Matrícula</th><th>Função</th><th>Regime</th><th>Contato</th><th>Veículo</th><th>Horário</th><th class="no-print">Ações</th></tr></thead>
           <tbody id="tbodyColaboradores"></tbody>
         </table>
       </div>
@@ -593,6 +600,7 @@ function renderCollaborators(){
       <td data-label="Nome">${c.nome||""}</td>
       <td data-label="Matrícula">${c.matricula||""}</td>
       <td data-label="Função">${c.funcao||""}</td>
+      <td data-label="Regime"><span class="badge ${c.regime==="ADM"?"pendente":"aprovada"}">${c.regime||"TURNO"}</span></td>
       <td data-label="Contato">${c.contato||""}</td>
       <td data-label="Veículo">${c.veiculo||""}</td>
       <td data-label="Horário">${c.horario||""}</td>
@@ -805,6 +813,7 @@ function clearCollaboratorForm(){
   $("colaboradorNome").value="";
   $("colaboradorMatricula").value="";
   $("colaboradorFuncao").value="";
+  $("colaboradorRegime").value="TURNO";
   $("colaboradorContato").value="";
   $("colaboradorEndereco").value="";
   $("colaboradorVeiculo").value="";
@@ -986,6 +995,7 @@ $("btnSalvarColaborador").addEventListener("click",async()=>{
     nome,
     matricula:$("colaboradorMatricula").value.trim(),
     funcao:$("colaboradorFuncao").value.trim(),
+    regime:$("colaboradorRegime").value,
     contato:$("colaboradorContato").value.trim(),
     endereco:$("colaboradorEndereco").value.trim(),
     veiculo:$("colaboradorVeiculo").value.trim(),
@@ -1203,6 +1213,7 @@ function temFolgaAprovada(nome,data,periodo){
 function colaboradoresQueIrao(data,periodo){
   return state.colaboradores
     .filter(c=>c.ativo!==false)
+    .filter(c=>(c.regime||"TURNO")!=="ADM")
     .filter(c=>!estaDeFerias(c.nome,data))
     .filter(c=>!temFolgaAprovada(c.nome,data,periodo));
 }
