@@ -189,6 +189,160 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
   td:before{display:none!important}
   th:last-child,td:last-child{display:none!important}
 }
+
+/* ===== Layout Portal Operação Diamante ===== */
+:root{
+  --portal-navy:#032a56;
+  --portal-navy-2:#001c3f;
+  --portal-blue:#064fba;
+  --portal-orange:#ff7625;
+  --portal-bg:#f4f7fb;
+}
+body{background:var(--portal-bg)}
+#appArea{
+  min-height:100vh;
+  padding-left:260px;
+}
+.topbar{
+  height:58px;
+  margin:0;
+  padding:0 24px;
+  background:var(--portal-navy-2);
+  color:#fff;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  position:sticky;
+  top:0;
+  z-index:40;
+}
+.topbar #usuarioLogado{font-weight:700}
+.topbar #btnSair{
+  background:#fff;
+  color:var(--portal-navy);
+  border:1px solid #d6deea;
+}
+.faixa{
+  margin:16px 24px 10px;
+  border-radius:13px;
+  padding:15px 20px;
+  background:linear-gradient(90deg,#ff7b25,#ff6c1a);
+  color:#fff;
+  font-size:25px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  text-align:center;
+  box-shadow:0 7px 18px rgba(255,118,37,.18);
+}
+.hero{
+  margin:0 24px 16px;
+  border-radius:14px;
+  min-height:105px;
+  padding:25px 30px;
+  background:linear-gradient(110deg,#072fa9,#1717dc);
+  border-left:15px solid var(--portal-orange);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  box-shadow:0 8px 22px rgba(15,38,100,.16);
+}
+.hero h1{
+  margin:0;
+  font-size:32px;
+  text-transform:uppercase;
+  letter-spacing:-.4px;
+}
+.hero p{display:none!important}
+.container{
+  max-width:none;
+  padding:0 24px 30px;
+  margin:0;
+}
+.tabs{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:260px;
+  z-index:60;
+  margin:0;
+  padding:96px 10px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:5px;
+  overflow-y:auto;
+  background:linear-gradient(180deg,var(--portal-navy-2),var(--portal-navy));
+  box-shadow:5px 0 22px rgba(0,25,65,.2);
+}
+.tabs::before{
+  content:"◇  DIAMANTE\A     ENERGIA";
+  white-space:pre;
+  position:absolute;
+  top:28px;
+  left:27px;
+  color:#fff;
+  font-size:18px;
+  line-height:1.05;
+  font-weight:900;
+  letter-spacing:1.5px;
+}
+.tab{
+  width:100%;
+  text-align:left;
+  border-radius:9px;
+  padding:12px 14px;
+  color:#e8f1ff;
+  background:transparent;
+  border:0;
+  font-weight:700;
+  font-size:14px;
+  box-shadow:none;
+}
+.tab:hover{
+  background:rgba(255,255,255,.09);
+  color:#fff;
+}
+.tab.active{
+  background:linear-gradient(90deg,#0757c7,#0646a3);
+  color:#fff;
+  box-shadow:inset 3px 0 0 var(--portal-orange);
+}
+.card,.kpi{
+  border-radius:14px;
+  border:1px solid #e3e9f2;
+  box-shadow:0 5px 16px rgba(21,42,75,.06);
+}
+.kpi .value{color:var(--portal-navy)}
+.section-head h2{color:var(--portal-navy)}
+.btn-blue{background:var(--portal-navy)}
+.btn-orange{background:var(--portal-orange)}
+.btn-green{background:#198d42}
+table thead th{
+  background:#eef3f8;
+  color:#263d5d;
+}
+@media(max-width:900px){
+  #appArea{padding-left:0}
+  .tabs{
+    position:static;
+    width:auto;
+    height:auto;
+    padding:12px;
+    flex-direction:row;
+    flex-wrap:wrap;
+    background:var(--portal-navy);
+  }
+  .tabs::before{display:none}
+  .tab{width:auto}
+  .faixa,.hero{margin-left:12px;margin-right:12px}
+  .container{padding-left:12px;padding-right:12px}
+}
+@media print{
+  #appArea{padding-left:0!important}
+  .tabs{display:none!important}
+  .faixa,.hero{margin-left:0!important;margin-right:0!important}
+}
+
 </style>
 </head>
 <body>
@@ -214,24 +368,23 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
   </div>
 
   <header class="hero">
-    <h1>Pedido e Aprovação de Folgas</h1>
-    <p>Equipe E - Solicitações, análise e planejamento de férias</p>
+    <h1>Gestão Equipe E</h1>
   </header>
 
-  <div class="faixa">Gestão da Equipe E</div>
+  <div class="faixa">Operação Diamante</div>
 
   <main class="container">
     <nav class="tabs no-print">
-      <button class="tab active" data-view="dashboard">Dashboard</button>
-      <button class="tab" data-view="efetivo">Efetivo da Semana</button>
-      <button class="tab" data-view="pedido">Pedido de Folga</button>
-      <button class="tab" data-view="aprovacao">Aprovação</button>
-      <button class="tab" data-view="ferias">Férias</button>
-      <button class="tab" data-view="banco">Banco de Horas</button>
-      <button class="tab" data-view="rotas">Rota 6 Dias</button>
-      <button class="tab" data-view="treinamentos">Treinamentos</button>
-      <button class="tab infra-access" data-view="infra">Infraestrutura</button>
-      <button class="tab supervisor-only" data-view="colaboradores">Colaboradores</button>
+      <button class="tab active" data-view="dashboard">⌂ Dashboard Geral</button>
+      <button class="tab" data-view="efetivo">👥 Efetivo da Semana</button>
+      <button class="tab" data-view="pedido">📅 Pedido de Folga</button>
+      <button class="tab" data-view="aprovacao">✓ Aprovação</button>
+      <button class="tab" data-view="ferias">🏖 Férias</button>
+      <button class="tab" data-view="banco">⏱ Banco de Horas</button>
+      <button class="tab" data-view="rotas">🚐 Rota 6 Dias</button>
+      <button class="tab" data-view="treinamentos">🎓 Treinamentos</button>
+      <button class="tab infra-access" data-view="infra">🏢 Infraestrutura</button>
+      <button class="tab supervisor-only" data-view="colaboradores">👤 Colaboradores</button>
     </nav>
 
 
