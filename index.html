@@ -128,6 +128,17 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 @media(max-width:980px){.infra-kpis{grid-template-columns:repeat(2,1fr)}.infra-toolbar{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.infra-kpis,.infra-toolbar{grid-template-columns:1fr}}
 
+
+#infraPrintHeader{display:none}
+@media print{
+  #infra.active #infraPrintHeader{display:block!important}
+  #infra.active .infra-kpis{grid-template-columns:repeat(5,1fr)!important}
+  #infra.active .infra-table-wrap{max-height:none!important;overflow:visible!important;border:0!important}
+  #infra.active table{table-layout:fixed!important}
+  #infra.active th,#infra.active td{font-size:8.5px!important;padding:5px!important}
+  #infra.active th:last-child,#infra.active td:last-child{display:none!important}
+}
+
 @media print{
   @page{size:A4 landscape;margin:9mm}
   .no-print,#pedido,.tabs,.topbar{display:none!important}
@@ -453,10 +464,15 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
           <div><label>Responsável</label><select id="infraFiltroResp"><option value="">Todos</option></select></div>
           <div class="actions" style="margin:0">
             <button id="btnFiltrarInfra" class="btn-blue">Filtrar</button>
-            <button id="btnImprimirInfra" class="btn-orange">Imprimir</button>
+            <button id="btnNovoChamadoInfra" class="btn-green">Adicionar chamado</button>
+            <button id="btnImprimirInfra" class="btn-orange">Relatório em PDF</button>
           </div>
         </div>
 
+        <div id="infraPrintHeader" class="hidden">
+          <h2 style="margin:0;color:var(--azul-escuro)">Relatório de Chamados da Infraestrutura</h2>
+          <p id="infraPrintPeriodo" style="margin:6px 0 12px;color:#475569"></p>
+        </div>
         <div class="infra-table-wrap">
           <table>
             <thead>
@@ -579,6 +595,7 @@ function applyPermissions(){
   $("btnLimparTreinamento").classList.toggle("hidden",!isGestor());
   document.querySelectorAll(".infra-access").forEach(el=>el.classList.toggle("hidden",!isInfra()));
   $("infraImportBox")?.classList.toggle("hidden",!isInfra());
+  $("btnNovoChamadoInfra")?.classList.toggle("hidden",!isInfra());
 }
 
 function showLogin(message=""){
@@ -1091,8 +1108,98 @@ $("arquivoInfra").addEventListener("change",e=>{
   reader.readAsArrayBuffer(file);
 });
 
+
+function limparNovoChamadoInfra(){
+  $("novoInfraId").value="";
+  $("novoInfraData").value=new Date().toISOString().slice(0,10);
+  $("novoInfraCategoria").value="";
+  $("novoInfraEmpresa").value="ENERGIA PECÉM";
+  $("novoInfraSolicitante").value="";
+  $("novoInfraResponsavel").value="";
+  $("novoInfraStatus").value="A PROGRAMAR";
+  $("novoInfraCriticidade").value="Média";
+  $("novoInfraServico").value="";
+  $("novoInfraComentario").value="";
+  $("novoInfraAcao").value="";
+}
+
+$("btnNovoChamadoInfra").addEventListener("click",()=>{
+  if(!isInfra())return;
+  limparNovoChamadoInfra();
+  $("modalNovoInfra").classList.remove("hidden");
+});
+
+$("btnSalvarNovoInfra").addEventListener("click",async()=>{
+  if(!isInfra())return;
+
+  const id=$("novoInfraId").value.trim();
+  const dataCriacao=$("novoInfraData").value;
+  const servico=$("novoInfraServico").value.trim();
+
+  if(!id||!dataCriacao||!servico){
+    alert("Informe ID, data de criação e descrição do serviço.");
+    return;
+  }
+
+  const existente=state.chamadosInfra.find(c=>String(c.id)===String(id));
+  if(existente){
+    alert("Já existe um chamado com este ID.");
+    return;
+  }
+
+  await addDoc(collection(db,"chamados_infra"),{
+    id,
+    dataCriacao,
+    categoria:$("novoInfraCategoria").value.trim(),
+    empresa:$("novoInfraEmpresa").value.trim()||"ENERGIA PECÉM",
+    servico,
+    dataResolucao:"",
+    solicitante:$("novoInfraSolicitante").value.trim(),
+    resolvedor:$("novoInfraResponsavel").value.trim(),
+    responsavelAcao:$("novoInfraResponsavel").value.trim(),
+    status:$("novoInfraStatus").value.trim()||"A PROGRAMAR",
+    status2:$("novoInfraComentario").value.trim(),
+    comentarioSemana:$("novoInfraComentario").value.trim(),
+    proximaAcao:$("novoInfraAcao").value.trim(),
+    criticidade:$("novoInfraCriticidade").value,
+    origem:"Portal",
+    criadoPor:state.user.uid,
+    criadoEm:serverTimestamp(),
+    alteradoPor:state.user.uid,
+    alteradoEm:serverTimestamp()
+  });
+
+  $("modalNovoInfra").classList.add("hidden");
+  limparNovoChamadoInfra();
+  alert("Chamado adicionado com sucesso.");
+});
+
+$("btnFecharNovoInfra").addEventListener("click",()=>$("modalNovoInfra").classList.add("hidden"));
+$("btnCancelarNovoInfra").addEventListener("click",()=>$("modalNovoInfra").classList.add("hidden"));
+
 $("btnFiltrarInfra").addEventListener("click",()=>renderInfra());
-$("btnImprimirInfra").addEventListener("click",()=>{setView("infra");window.print();});
+$("btnImprimirInfra").addEventListener("click",()=>{
+  const lista=listaInfraFiltrada();
+  if(!lista.length){
+    alert("Não há chamados para gerar o relatório.");
+    return;
+  }
+
+  renderInfra(lista);
+
+  const status=$("infraFiltroStatus").value||"Todos";
+  const criticidade=$("infraFiltroCrit").value||"Todas";
+  const responsavel=$("infraFiltroResp").value||"Todos";
+  const hoje=new Date().toLocaleDateString("pt-BR");
+
+  $("infraPrintPeriodo").textContent=
+    `Gerado em ${hoje} • Status: ${status} • Criticidade: ${criticidade} • Responsável: ${responsavel} • Registros: ${lista.length}`;
+
+  setView("infra");
+  window.print();
+
+  setTimeout(()=>renderInfra(),300);
+});
 
 $("tbodyInfra").addEventListener("click",e=>{
   const btn=e.target.closest("button[data-action='edit-infra']");
@@ -1639,6 +1746,30 @@ onAuthStateChanged(auth,async user=>{
     <div class="actions">
       <button id="btnSalvarInfra" class="btn-green">Salvar atualização</button>
       <button id="btnCancelarInfra" class="btn-gray">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="modalNovoInfra" class="modal hidden no-print">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Adicionar chamado da Infraestrutura</h3><button id="btnFecharNovoInfra" class="btn-gray">×</button></div>
+    <div class="grid" style="margin-top:14px">
+      <div><label>ID do chamado</label><input id="novoInfraId"></div>
+      <div><label>Data de criação</label><input id="novoInfraData" type="date"></div>
+      <div><label>Categoria</label><input id="novoInfraCategoria"></div>
+      <div><label>Empresa</label><input id="novoInfraEmpresa" value="ENERGIA PECÉM"></div>
+      <div><label>Solicitante</label><input id="novoInfraSolicitante"></div>
+      <div><label>Responsável</label><input id="novoInfraResponsavel"></div>
+      <div><label>Status</label><input id="novoInfraStatus" value="A PROGRAMAR"></div>
+      <div><label>Criticidade</label><select id="novoInfraCriticidade"><option>Alta</option><option selected>Média</option><option>Baixa</option></select></div>
+    </div>
+    <div style="margin-top:12px"><label>Serviço / descrição</label><textarea id="novoInfraServico" rows="4"></textarea></div>
+    <div style="margin-top:12px"><label>Comentário inicial</label><textarea id="novoInfraComentario" rows="3"></textarea></div>
+    <div style="margin-top:12px"><label>Próxima ação</label><textarea id="novoInfraAcao" rows="3"></textarea></div>
+    <div class="actions">
+      <button id="btnSalvarNovoInfra" class="btn-green">Salvar chamado</button>
+      <button id="btnCancelarNovoInfra" class="btn-gray">Cancelar</button>
     </div>
   </div>
 </div>
