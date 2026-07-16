@@ -117,6 +117,17 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 @media(max-width:900px){.semana-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.semana-grid{grid-template-columns:1fr}}
 
+
+.infra-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.infra-toolbar{display:grid;grid-template-columns:1.4fr repeat(3,1fr) auto;gap:10px;align-items:end}
+.infra-import{background:#f8fbfe;border:1px dashed #9fb3c8;border-radius:14px;padding:15px;margin-bottom:14px}
+.infra-table-wrap{overflow:auto;max-height:650px;border:1px solid var(--linha);border-radius:14px}
+.infra-critical{color:#991b1b;font-weight:900}
+.infra-warning{color:#92400e;font-weight:900}
+.infra-ok{color:#166534;font-weight:900}
+@media(max-width:980px){.infra-kpis{grid-template-columns:repeat(2,1fr)}.infra-toolbar{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.infra-kpis,.infra-toolbar{grid-template-columns:1fr}}
+
 @media print{
   @page{size:A4 landscape;margin:9mm}
   .no-print,#pedido,.tabs,.topbar{display:none!important}
@@ -170,6 +181,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
       <button class="tab" data-view="banco">Banco de Horas</button>
       <button class="tab" data-view="rotas">Rota 6 Dias</button>
       <button class="tab" data-view="treinamentos">Treinamentos</button>
+      <button class="tab infra-access" data-view="infra">Infraestrutura</button>
       <button class="tab supervisor-only" data-view="colaboradores">Colaboradores</button>
     </nav>
 
@@ -413,6 +425,49 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
       </div>
     </section>
 
+
+    <section id="infra" class="view">
+      <div class="card">
+        <div class="section-head"><div class="icon">🏢</div><h2>Chamados da Infraestrutura</h2></div>
+
+        <div id="infraImportBox" class="infra-import no-print">
+          <label>Importar planilha de chamados (XLSX, XLS ou CSV)</label>
+          <input id="arquivoInfra" type="file" accept=".xlsx,.xls,.csv">
+          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">
+            A importação atualiza chamados existentes pelo ID e inclui os novos registros.
+          </p>
+        </div>
+
+        <div class="infra-kpis">
+          <div class="kpi"><div id="infraTotal" class="value">0</div><div class="label">Total</div></div>
+          <div class="kpi"><div id="infraAbertos" class="value">0</div><div class="label">Em acompanhamento</div></div>
+          <div class="kpi"><div id="infraAtrasados" class="value">0</div><div class="label">Acima de 30 dias</div></div>
+          <div class="kpi"><div id="infraConcluidos" class="value">0</div><div class="label">Concluídos</div></div>
+          <div class="kpi"><div id="infraSemResponsavel" class="value">0</div><div class="label">Sem responsável</div></div>
+        </div>
+
+        <div class="infra-toolbar no-print">
+          <div><label>Pesquisar</label><input id="infraPesquisa" placeholder="ID, serviço, solicitante ou responsável"></div>
+          <div><label>Status</label><select id="infraFiltroStatus"><option value="">Todos</option></select></div>
+          <div><label>Criticidade</label><select id="infraFiltroCrit"><option value="">Todas</option><option>Alta</option><option>Média</option><option>Baixa</option></select></div>
+          <div><label>Responsável</label><select id="infraFiltroResp"><option value="">Todos</option></select></div>
+          <div class="actions" style="margin:0">
+            <button id="btnFiltrarInfra" class="btn-blue">Filtrar</button>
+            <button id="btnImprimirInfra" class="btn-orange">Imprimir</button>
+          </div>
+        </div>
+
+        <div class="infra-table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Dias</th><th>Criticidade</th><th>Status</th><th>Serviço</th><th>Responsável</th><th>Comentário</th><th class="no-print">Ações</th></tr>
+            </thead>
+            <tbody id="tbodyInfra"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section id="colaboradores" class="view">
       <div class="card">
         <div class="section-head"><div class="icon">👥</div><h2>Cadastro de Colaboradores</h2></div>
@@ -491,6 +546,8 @@ const state = {
   ferias: [],
   bancoHoras: [],
   treinamentos: [],
+  chamadosInfra: [],
+  infraEditId: null,
   treinamentoEditId: null,
   folgaEditId: null,
   feriasEditId: null,
@@ -501,6 +558,7 @@ const state = {
 const $ = id => document.getElementById(id);
 const isSupervisor = () => state.profile?.perfil === "supervisor";
 const isGestor = () => ["supervisor","especialista"].includes(state.profile?.perfil);
+const isInfra = () => ["supervisor","infra"].includes(state.profile?.perfil);
 const formatDate = iso => iso ? new Date(iso+"T00:00:00").toLocaleDateString("pt-BR") : "";
 const daysBetween = (a,b) => Math.floor((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/86400000)+1;
 
@@ -519,6 +577,8 @@ function applyPermissions(){
   $("formTreinamento").classList.toggle("hidden",!isGestor());
   $("btnSalvarTreinamento").classList.toggle("hidden",!isGestor());
   $("btnLimparTreinamento").classList.toggle("hidden",!isGestor());
+  document.querySelectorAll(".infra-access").forEach(el=>el.classList.toggle("hidden",!isInfra()));
+  $("infraImportBox")?.classList.toggle("hidden",!isInfra());
 }
 
 function showLogin(message=""){
@@ -586,6 +646,16 @@ function subscribeData(){
       renderDashboard();
       populateCollaborators();
     },err=>alert("Erro ao carregar treinamentos: "+err.message))
+  );
+
+
+  state.unsubscribers.push(
+    onSnapshot(query(collection(db,"chamados_infra"),orderBy("dataCriacao","desc")),snap=>{
+      state.chamadosInfra=snap.docs.map(d=>({docId:d.id,...d.data()}));
+      preencherFiltrosInfra();
+      renderInfra();
+      renderDashboard();
+    },err=>alert("Erro ao carregar chamados da infraestrutura: "+err.message))
   );
 
   state.unsubscribers.push(
@@ -853,6 +923,208 @@ function clearTrainingForm(){
   $("treinamentoValidade").value="";
   $("btnSalvarTreinamento").textContent="Salvar treinamento";
 }
+
+
+function valorLinha(row, nomes){
+  for(const nome of nomes){
+    if(row[nome]!==undefined && row[nome]!==null && row[nome]!=="")return row[nome];
+  }
+  return "";
+}
+
+function dataExcelParaIso(valor){
+  if(!valor)return "";
+  if(typeof valor==="number"){
+    const d=XLSX.SSF.parse_date_code(valor);
+    if(d)return `${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`;
+  }
+  const s=String(valor).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+  const m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  if(m)return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+  return "";
+}
+
+function statusConcluidoInfra(status){
+  const s=String(status||"").toUpperCase();
+  return ["CONCLUÍDO","CONCLUIDO","RESOLVIDO","FINALIZADO","CANCELADO"].some(x=>s.includes(x));
+}
+
+function diasEmAbertoInfra(c){
+  if(c.diasPlanilha!==undefined && c.diasPlanilha!==null && c.diasPlanilha!=="")return Number(c.diasPlanilha)||0;
+  if(!c.dataCriacao)return 0;
+  const fim=c.dataResolucao||new Date().toISOString().slice(0,10);
+  return Math.max(0,Math.floor((new Date(fim+"T00:00:00")-new Date(c.dataCriacao+"T00:00:00"))/86400000));
+}
+
+function criticidadeInfra(c){
+  if(c.criticidade)return c.criticidade;
+  const dias=diasEmAbertoInfra(c);
+  if(dias>60)return "Alta";
+  if(dias>30)return "Média";
+  return "Baixa";
+}
+
+function rowToInfra(row){
+  const id=String(valorLinha(row,["ID","Id","id","Chamado","Número","Numero"])||"").trim();
+  if(!id)return null;
+  const dataCriacao=dataExcelParaIso(valorLinha(row,["Data da Criação","Data Criação","Data de Criação","CRIACAO","DATA"]));
+  const status=String(valorLinha(row,["Status","STATUS"])||"A PROGRAMAR").trim();
+  return {
+    id,
+    dataCriacao,
+    categoria:String(valorLinha(row,["Categoria"])||"").trim(),
+    empresa:String(valorLinha(row,["Empresa"])||"ENERGIA PECÉM").trim(),
+    servico:String(valorLinha(row,["Serviço","Servico","Descrição do Serviço","Descricao do Servico","Descrição","Descricao"])||"").trim(),
+    dataResolucao:dataExcelParaIso(valorLinha(row,["Data Real da Resolução","Data Resolução","Resolucao"])),
+    solicitante:String(valorLinha(row,["Solicitante"])||"").trim(),
+    resolvedor:String(valorLinha(row,["Resolvedor","Responsável Infra","Responsavel Infra","Responsável","Responsavel"])||"").trim(),
+    status,
+    status2:String(valorLinha(row,["STATUS 2","Status 2","Comentário","Observação","OBSERVACAO"])||"").trim(),
+    diasPlanilha:Number(valorLinha(row,["Dias","Dias em Aberto","diasPlanilha"]))||0
+  };
+}
+
+function preencherFiltrosInfra(){
+  const statuses=[...new Set(state.chamadosInfra.map(c=>c.status).filter(Boolean))].sort();
+  const resps=[...new Set(state.chamadosInfra.map(c=>c.responsavelAcao||c.resolvedor).filter(Boolean))].sort();
+  $("infraFiltroStatus").innerHTML='<option value="">Todos</option>'+statuses.map(x=>`<option>${x}</option>`).join("");
+  $("infraFiltroResp").innerHTML='<option value="">Todos</option>'+resps.map(x=>`<option>${x}</option>`).join("");
+}
+
+function listaInfraFiltrada(){
+  const q=$("infraPesquisa").value.trim().toUpperCase();
+  const st=$("infraFiltroStatus").value;
+  const cr=$("infraFiltroCrit").value;
+  const rp=$("infraFiltroResp").value;
+
+  return state.chamadosInfra.filter(c=>{
+    const texto=[c.id,c.servico,c.solicitante,c.resolvedor,c.responsavelAcao,c.status2,c.comentarioSemana].join(" ").toUpperCase();
+    const resp=c.responsavelAcao||c.resolvedor||"";
+    return (!q||texto.includes(q))
+      && (!st||c.status===st)
+      && (!cr||criticidadeInfra(c)===cr)
+      && (!rp||resp===rp);
+  });
+}
+
+function renderInfra(list=listaInfraFiltrada()){
+  const total=state.chamadosInfra.length;
+  const concluidos=state.chamadosInfra.filter(c=>statusConcluidoInfra(c.status)).length;
+  const abertos=total-concluidos;
+  const atrasados=state.chamadosInfra.filter(c=>!statusConcluidoInfra(c.status)&&diasEmAbertoInfra(c)>30).length;
+  const semResp=state.chamadosInfra.filter(c=>!statusConcluidoInfra(c.status)&&!(c.responsavelAcao||c.resolvedor)).length;
+
+  $("infraTotal").textContent=total;
+  $("infraAbertos").textContent=abertos;
+  $("infraAtrasados").textContent=atrasados;
+  $("infraConcluidos").textContent=concluidos;
+  $("infraSemResponsavel").textContent=semResp;
+
+  $("tbodyInfra").innerHTML=list.map(c=>{
+    const crit=criticidadeInfra(c);
+    const cls=crit==="Alta"?"infra-critical":crit==="Média"?"infra-warning":"infra-ok";
+    const acoes=isInfra()?`<button class="btn-edit" data-action="edit-infra" data-id="${c.docId}">Atualizar</button>`:"";
+    return `<tr>
+      <td data-label="ID"><b>${c.id||""}</b></td>
+      <td data-label="Dias">${diasEmAbertoInfra(c)}</td>
+      <td data-label="Criticidade"><span class="${cls}">${crit}</span></td>
+      <td data-label="Status">${c.status||""}</td>
+      <td data-label="Serviço">${c.servico||""}</td>
+      <td data-label="Responsável">${c.responsavelAcao||c.resolvedor||""}</td>
+      <td data-label="Comentário">${c.comentarioSemana||c.status2||""}</td>
+      <td data-label="Ações" class="no-print">${acoes}</td>
+    </tr>`;
+  }).join("");
+}
+
+$("arquivoInfra").addEventListener("change",e=>{
+  if(!isInfra())return;
+  const file=e.target.files?.[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      let rows=[];
+      if(file.name.toLowerCase().endsWith(".csv")){
+        const text=new TextDecoder("utf-8").decode(ev.target.result);
+        const wb=XLSX.read(text,{type:"string"});
+        rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+      }else{
+        const wb=XLSX.read(ev.target.result,{type:"array"});
+        rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+      }
+
+      const chamados=rows.map(rowToInfra).filter(Boolean);
+      let novos=0,atualizados=0;
+
+      for(const c of chamados){
+        const existente=state.chamadosInfra.find(x=>String(x.id)===String(c.id));
+        const payload={
+          ...c,
+          criticidade:existente?.criticidade||criticidadeInfra(c),
+          responsavelAcao:existente?.responsavelAcao||c.resolvedor,
+          comentarioSemana:existente?.comentarioSemana||c.status2,
+          proximaAcao:existente?.proximaAcao||"",
+          alteradoPor:state.user.uid,
+          alteradoEm:serverTimestamp()
+        };
+        if(existente){
+          await updateDoc(doc(db,"chamados_infra",existente.docId),payload);
+          atualizados++;
+        }else{
+          await addDoc(collection(db,"chamados_infra"),{
+            ...payload,
+            criadoPor:state.user.uid,
+            criadoEm:serverTimestamp()
+          });
+          novos++;
+        }
+      }
+
+      alert(`Importação concluída.\n\nNovos: ${novos}\nAtualizados: ${atualizados}`);
+      e.target.value="";
+    }catch(err){
+      alert("Falha ao importar a planilha: "+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+$("btnFiltrarInfra").addEventListener("click",()=>renderInfra());
+$("btnImprimirInfra").addEventListener("click",()=>{setView("infra");window.print();});
+
+$("tbodyInfra").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-action='edit-infra']");
+  if(!btn||!isInfra())return;
+  const c=state.chamadosInfra.find(x=>x.docId===btn.dataset.id);
+  if(!c)return;
+  state.infraEditId=c.docId;
+  $("infraEditStatus").value=c.status||"";
+  $("infraEditResponsavel").value=c.responsavelAcao||c.resolvedor||"";
+  $("infraEditCriticidade").value=criticidadeInfra(c);
+  $("infraEditComentario").value=c.comentarioSemana||c.status2||"";
+  $("infraEditAcao").value=c.proximaAcao||"";
+  $("modalInfra").classList.remove("hidden");
+});
+
+$("btnSalvarInfra").addEventListener("click",async()=>{
+  if(!state.infraEditId||!isInfra())return;
+  await updateDoc(doc(db,"chamados_infra",state.infraEditId),{
+    status:$("infraEditStatus").value.trim(),
+    responsavelAcao:$("infraEditResponsavel").value.trim(),
+    criticidade:$("infraEditCriticidade").value,
+    comentarioSemana:$("infraEditComentario").value.trim(),
+    proximaAcao:$("infraEditAcao").value.trim(),
+    alteradoPor:state.user.uid,
+    alteradoEm:serverTimestamp()
+  });
+  $("modalInfra").classList.add("hidden");
+  state.infraEditId=null;
+});
+
+$("btnFecharInfra").addEventListener("click",()=>$("modalInfra").classList.add("hidden"));
+$("btnCancelarInfra").addEventListener("click",()=>$("modalInfra").classList.add("hidden"));
 
 function clearFolgaForm(){
   $("folgaNome").value="";
@@ -1340,6 +1612,12 @@ onAuthStateChanged(auth,async user=>{
     state.user=user;
     state.profile=await loadProfile(user);
     showApp();
+    if(state.profile.perfil==="infra"){
+      document.querySelectorAll(".tab").forEach(t=>{
+        t.classList.toggle("hidden",t.dataset.view!=="infra");
+      });
+      setView("infra");
+    }
     subscribeData();
   }catch(e){
     alert(e.message);
@@ -1347,5 +1625,23 @@ onAuthStateChanged(auth,async user=>{
   }
 });
 </script>
+
+<div id="modalInfra" class="modal hidden no-print">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Atualizar chamado</h3><button id="btnFecharInfra" class="btn-gray">×</button></div>
+    <div class="grid" style="margin-top:14px">
+      <div><label>Status</label><input id="infraEditStatus"></div>
+      <div><label>Responsável Infra</label><input id="infraEditResponsavel"></div>
+      <div><label>Criticidade</label><select id="infraEditCriticidade"><option>Alta</option><option>Média</option><option>Baixa</option></select></div>
+    </div>
+    <div style="margin-top:12px"><label>Comentário da semana / STATUS 2</label><textarea id="infraEditComentario" rows="4"></textarea></div>
+    <div style="margin-top:12px"><label>Próxima ação</label><textarea id="infraEditAcao" rows="3"></textarea></div>
+    <div class="actions">
+      <button id="btnSalvarInfra" class="btn-green">Salvar atualização</button>
+      <button id="btnCancelarInfra" class="btn-gray">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
