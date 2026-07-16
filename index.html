@@ -343,100 +343,6 @@ table thead th{
   .faixa,.hero{margin-left:0!important;margin-right:0!important}
 }
 
-
-/* ===== Sprint Gestão - Teste ===== */
-.gestao-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
-.gestao-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.gestao-bar{height:12px;background:#e6edf6;border-radius:999px;overflow:hidden;margin-top:5px}
-.gestao-bar span{display:block;height:100%;background:linear-gradient(90deg,#0757c7,#ff7625)}
-.gestao-lista-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e8edf4}
-.gestao-lista-item:last-child{border-bottom:0}
-.gestao-alerta{padding:10px 12px;border-radius:10px;margin-bottom:8px;background:#fff7ed;border-left:4px solid #ff7625}
-.gestao-table-wrap{overflow:auto;border:1px solid #e1e8f1;border-radius:12px}
-.gestao-fonte{font-size:11px;color:#64748b;margin-top:8px}
-@media(max-width:1100px){.gestao-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:800px){.gestao-grid{grid-template-columns:repeat(2,1fr)}.gestao-columns{grid-template-columns:1fr}}
-@media(max-width:520px){.gestao-grid{grid-template-columns:1fr}}
-
-
-/* ===== Gestão Operacional Equipe E ===== */
-.gestao-tabs{
-  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
-}
-.gestao-tabs button{
-  background:#edf3fa;color:#073b63;border:1px solid #d5e0ec;
-  padding:9px 12px;border-radius:9px;font-weight:800;
-}
-.gestao-tabs button.active{background:#052b57;color:#fff;border-color:#052b57}
-.gestao-subview{display:none}.gestao-subview.active{display:block}
-.gestao-kpis{
-  display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));
-  gap:12px;margin-bottom:14px;
-}
-.gestao-kpi{
-  background:#fff;border:1px solid #dfe6ef;border-radius:14px;
-  padding:15px;border-top:4px solid #ff7625;
-  box-shadow:0 5px 16px rgba(21,44,75,.06);
-}
-.gestao-kpi .valor{font-size:27px;font-weight:900;color:#052b57}
-.gestao-kpi .rotulo{font-size:11px;color:#687386;margin-top:4px}
-.gestao-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.gestao-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.gestao-panel{
-  background:#fff;border:1px solid #dfe6ef;border-radius:14px;
-  padding:16px;margin-bottom:14px;box-shadow:0 5px 16px rgba(21,44,75,.06);
-}
-.gestao-panel h3{margin:0 0 13px;color:#052b57;font-size:17px}
-.gestao-bar-row{display:grid;grid-template-columns:145px 1fr 55px;gap:10px;align-items:center;margin:10px 0}
-.gestao-bar{height:14px;background:#e8eef5;border-radius:999px;overflow:hidden}
-.gestao-bar span{display:block;height:100%;background:linear-gradient(90deg,#0757c7,#ff7625)}
-.gestao-risk{padding:10px 12px;border-radius:10px;margin:8px 0;border-left:5px solid}
-.gestao-risk.regular{background:#eaf8ef;border-color:#198754}
-.gestao-risk.atencao{background:#fff7dd;border-color:#d99a00}
-.gestao-risk.critico{background:#ffeaea;border-color:#c73434}
-.gestao-card-colaborador{
-  background:#fff;border:1px solid #dfe6ef;border-radius:14px;
-  padding:15px;box-shadow:0 5px 16px rgba(21,44,75,.05);
-}
-.gestao-avatar{
-  width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
-  background:#052b57;color:#fff;font-weight:900;margin-bottom:9px;
-}
-.gestao-small{font-size:12px;color:#687386}
-.gestao-badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900}
-.gestao-badge.ok{background:#dcfce7;color:#166534}
-.gestao-badge.warn{background:#fff1cc;color:#92400e}
-.gestao-badge.bad{background:#fee2e2;color:#991b1b}
-.gestao-toolbar{
-  display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px;
-}
-.gestao-scroll{overflow:auto;border:1px solid #e1e8f1;border-radius:12px}
-.gestao-planning{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
-}
-.gestao-planning .item{
-  background:#f8fbff;border:1px solid #dfe7f0;border-radius:12px;padding:13px;
-}
-.gestao-money{font-weight:900;color:#052b57}
-@media(max-width:1200px){
-  .gestao-kpis{grid-template-columns:repeat(4,1fr)}
-  .gestao-grid3{grid-template-columns:1fr 1fr}
-}
-@media(max-width:850px){
-  .gestao-kpis{grid-template-columns:repeat(2,1fr)}
-  .gestao-grid2,.gestao-grid3,.gestao-planning{grid-template-columns:1fr}
-  .gestao-toolbar{grid-template-columns:1fr 1fr}
-}
-@media(max-width:520px){
-  .gestao-kpis,.gestao-toolbar{grid-template-columns:1fr}
-  .gestao-bar-row{grid-template-columns:105px 1fr 40px}
-}
-@media print{
-  .gestao-tabs,.gestao-toolbar{display:none!important}
-  .gestao-subview{display:none!important}
-  .gestao-subview.active{display:block!important}
-}
-
 </style>
 </head>
 <body>
@@ -470,7 +376,6 @@ table thead th{
   <main class="container">
     <nav class="tabs no-print">
       <button class="tab active" data-view="dashboard">⌂ Dashboard Geral</button>
-      <button class="tab supervisor-only" data-view="gestao">📊 Gestão</button>
       <button class="tab" data-view="efetivo">👥 Efetivo da Semana</button>
       <button class="tab" data-view="pedido">📅 Pedido de Folga</button>
       <button class="tab" data-view="aprovacao">✓ Aprovação</button>
@@ -481,7 +386,9 @@ table thead th{
       <button class="tab infra-access" data-view="infra">🏢 Infraestrutura</button>
       <button class="tab supervisor-only" data-view="colaboradores">👤 Colaboradores</button>
     </nav>
-<section id="dashboard" class="view active">
+
+
+    <section id="dashboard" class="view active">
       <div class="dashboard-grid">
         <div class="kpi"><div id="kpiColaboradores" class="value">0</div><div class="label">Colaboradores</div></div>
         <div class="kpi"><div id="kpiFolgasPendentes" class="value">0</div><div class="label">Folgas pendentes</div></div>
@@ -918,7 +825,6 @@ function subscribeData(){
       state.colaboradores=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderCollaborators();
       populateCollaborators();
-      renderGestaoOperacional();
       if($("efetivoData")?.value) gerarEfetivoSemana();
       renderDashboard();
     },err=>alert("Erro ao carregar colaboradores: "+err.message))
@@ -928,7 +834,6 @@ function subscribeData(){
     onSnapshot(query(collection(db,"solicitacoes_folga"),orderBy("data","asc")),snap=>{
       state.folgas=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFolgas();
-      renderGestaoOperacional();
       if($("efetivoData")?.value) gerarEfetivoSemana();
       renderBanco();
       atualizarAvisoSaldoFolga();
@@ -951,7 +856,6 @@ function subscribeData(){
     onSnapshot(query(collection(db,"treinamentos"),orderBy("validade","asc")),snap=>{
       state.treinamentos=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTreinamentos();
-      renderGestaoOperacional();
       renderDashboard();
       populateCollaborators();
     },err=>alert("Erro ao carregar treinamentos: "+err.message))
@@ -963,7 +867,6 @@ function subscribeData(){
       state.chamadosInfra=snap.docs.map(d=>({docId:d.id,...d.data()}));
       preencherFiltrosInfra();
       renderInfra();
-      renderGestaoOperacional();
       renderDashboard();
     },err=>alert("Erro ao carregar chamados da infraestrutura: "+err.message))
   );
@@ -972,7 +875,6 @@ function subscribeData(){
     onSnapshot(query(collection(db,"ferias"),orderBy("inicio","asc")),snap=>{
       state.ferias=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFerias();
-      renderGestaoOperacional();
       populateCollaborators();
       if($("efetivoData")?.value) gerarEfetivoSemana();
       renderDashboard();
@@ -1168,179 +1070,7 @@ function renderBanco(list=state.bancoHoras){
   }).join("");
 }
 
-
-
-
-
-function gAnosEmpresa(dataIso){
-  if(!dataIso)return 0;
-  return Math.max(0,(new Date()-new Date(dataIso+"T00:00:00"))/(365.25*86400000));
-}
-function gNivel(funcao){
-  const f=String(funcao||"").toUpperCase();
-  if(f.includes("SUP"))return "Supervisor";
-  if(f.includes("ESP"))return "Especialista";
-  if(f.includes(" SR"))return "Sênior";
-  if(f.includes(" PL"))return "Pleno";
-  if(f.includes(" JR"))return "Júnior";
-  return "Outros";
-}
-function gMoeda(valor){
-  return Number(valor||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-}
-function gSaldoMin(nome){
-  return typeof saldoDisponivelMinutos==="function" ? saldoDisponivelMinutos(nome) : null;
-}
-function gStatusColaborador(c){
-  const hoje=new Date().toISOString().slice(0,10);
-  const ferias=state.ferias?.some(f=>normalizarNome(f.nome)===normalizarNome(c.nome)&&["Programada","Aprovada"].includes(f.status)&&hoje>=f.inicio&&hoje<=f.fim);
-  if(ferias)return "Férias";
-  if(c.status)return c.status;
-  return c.ativo===false?"Inativo":"Ativo";
-}
-function gBarra(nome,qtd,max){
-  return `<div class="gestao-bar-row"><span>${nome}</span><div class="gestao-bar"><span style="width:${max?qtd/max*100:0}%"></span></div><b>${qtd}</b></div>`;
-}
-function gDadosColaboradores(){
-  return (state.colaboradores||[]).map(c=>({
-    ...c,
-    statusGestao:gStatusColaborador(c),
-    tempo:gAnosEmpresa(c.admissao||c.dataAdmissao),
-    nivel:gNivel(c.funcao),
-    saldoMin:gSaldoMin(c.nome)
-  }));
-}
-function renderGestaoOperacional(){
-  if(!isSupervisor())return;
-  const dados=gDadosColaboradores();
-  const ativos=dados.filter(x=>x.statusGestao==="Ativo");
-  const ferias=dados.filter(x=>x.statusGestao==="Férias");
-  const novos=dados.filter(x=>x.tempo<1);
-  const tempoMedio=dados.length?dados.reduce((s,x)=>s+x.tempo,0)/dados.length:0;
-  const bancoNegativo=dados.filter(x=>x.saldoMin!==null&&x.saldoMin<0).length;
-  const treinCrit=(state.treinamentos||[]).filter(t=>["vencer","vencido"].includes(statusTreinamento(t.validade).chave)).length;
-
-  $("gTotal").textContent=dados.length;
-  $("gAtivos").textContent=ativos.length;
-  $("gFerias").textContent=ferias.length;
-  $("gNovos").textContent=novos.length;
-  $("gTempo").textContent=tempoMedio.toFixed(1)+" anos";
-  $("gBancoNegativo").textContent=bancoNegativo;
-  $("gTreinamentos").textContent=treinCrit;
-
-  const funcoes={};dados.forEach(x=>funcoes[x.nivel]=(funcoes[x.nivel]||0)+1);
-  const maxF=Math.max(...Object.values(funcoes),1);
-  $("gGraficoFuncao").innerHTML=Object.entries(funcoes).sort((a,b)=>b[1]-a[1]).map(([n,q])=>gBarra(n,q,maxF)).join("");
-
-  const faixas={"Até 1 ano":0,"1 a 5 anos":0,"5 a 10 anos":0,"Acima de 10 anos":0};
-  dados.forEach(x=>{if(x.tempo<1)faixas["Até 1 ano"]++;else if(x.tempo<5)faixas["1 a 5 anos"]++;else if(x.tempo<10)faixas["5 a 10 anos"]++;else faixas["Acima de 10 anos"]++;});
-  const maxT=Math.max(...Object.values(faixas),1);
-  $("gGraficoTempo").innerHTML=Object.entries(faixas).map(([n,q])=>gBarra(n,q,maxT)).join("");
-
-  const alertas=[];
-  const especialistas=funcoes["Especialista"]||0;
-  if(especialistas===0)alertas.push(["critico","Equipe sem Operador Especialista cadastrado."]);
-  else alertas.push(["regular",`${especialistas} especialista(s) cadastrado(s).`]);
-  if(novos.length>dados.length/2)alertas.push(["atencao","Mais da metade da equipe possui menos de 1 ano."]);
-  if(treinCrit)alertas.push(["critico",`${treinCrit} treinamento(s) vencido(s) ou a vencer.`]);
-  if(bancoNegativo)alertas.push(["atencao",`${bancoNegativo} colaborador(es) com banco negativo.`]);
-  if(ferias.length>2)alertas.push(["atencao",`${ferias.length} colaboradores em férias simultaneamente.`]);
-  $("gAlertas").innerHTML=alertas.map(([c,t])=>`<div class="gestao-risk ${c}">${t}</div>`).join("");
-
-  const proxFerias=(state.ferias||[]).filter(f=>["Programada","Aprovada"].includes(f.status)).sort((a,b)=>a.inicio.localeCompare(b.inicio)).slice(0,3);
-  const proxFolgas=(state.folgas||[]).filter(f=>f.status==="Aprovada").sort((a,b)=>a.data.localeCompare(b.data)).slice(0,3);
-  $("gPlanejamentoResumo").innerHTML=
-    `<b>Próximas férias</b>${proxFerias.length?proxFerias.map(f=>`<div class="gestao-small">${f.nome} — ${formatDate(f.inicio)}</div>`).join(""):'<div class="gestao-small">Sem registros</div>'}
-     <br><b>Próximas folgas</b>${proxFolgas.length?proxFolgas.map(f=>`<div class="gestao-small">${f.nome} — ${formatDate(f.data)} (${f.periodo})</div>`).join(""):'<div class="gestao-small">Sem registros</div>'}`;
-
-  renderGestaoTabela(dados);
-  renderGestaoTreinamentos(dados);
-  renderGestaoCards(dados);
-  renderGestaoIndicadores(dados);
-}
-function renderGestaoTabela(lista=gDadosColaboradores()){
-  $("gTabelaColaboradores").innerHTML=lista.map(c=>`<tr>
-    <td>${c.nome||""}</td><td>${c.matricula||""}</td><td>${c.funcao||""}</td>
-    <td>${c.regime||"TURNO"}</td><td>${formatDate(c.admissao||c.dataAdmissao)}</td>
-    <td>${c.tempo.toFixed(1)} anos</td>
-    <td><span class="gestao-badge ${c.statusGestao==="Ativo"?"ok":c.statusGestao==="Férias"?"warn":"bad"}">${c.statusGestao}</span></td>
-    <td>${c.saldoMin===null?"—":saldoFormatado(c.saldoMin/60)}</td>
-  </tr>`).join("");
-}
-function renderGestaoTreinamentos(dados){
-  $("gTabelaTreinamentos").innerHTML=dados.map(c=>{
-    const registros=(state.treinamentos||[]).filter(t=>normalizarNome(t.nome)===normalizarNome(c.nome));
-    const statusTipo=tipo=>{
-      const r=registros.find(t=>String(t.titulo||"").toUpperCase().includes(tipo));
-      return r?statusTreinamento(r.validade).texto:"Não informado";
-    };
-    const proximo=registros.filter(r=>r.validade).sort((a,b)=>a.validade.localeCompare(b.validade))[0];
-    return `<tr><td>${c.nome}</td><td>${statusTipo("NR-10")}</td><td>${statusTipo("NR-33")}</td><td>${statusTipo("NR-35")}</td><td>${statusTipo("BRIGADA")}</td><td>${statusTipo("PT")}</td><td>${statusTipo("RECICLAGEM")}</td><td>${proximo?formatDate(proximo.validade):"—"}</td></tr>`;
-  }).join("");
-}
-function renderGestaoCards(dados){
-  $("gCardsColaboradores").innerHTML=dados.map(c=>`<div class="gestao-card-colaborador">
-    <div class="gestao-avatar">${String(c.nome||"?").split(" ").slice(0,2).map(x=>x[0]).join("")}</div>
-    <b>${c.nome||""}</b><div class="gestao-small">${c.funcao||"Função não informada"}</div>
-    <hr style="border:0;border-top:1px solid #e5eaf1">
-    <div class="gestao-small">Equipe: ${c.equipe||"E"}</div>
-    <div class="gestao-small">Regime: ${c.regime||"TURNO"}</div>
-    <div class="gestao-small">Tempo de empresa: ${c.tempo.toFixed(1)} anos</div>
-    <div class="gestao-small">Brigadista: ${c.brigadista?"Sim":"Não informado"}</div>
-    <div class="gestao-small">Monitor de evasão: ${c.monitorEvasao?"Sim":"Não informado"}</div>
-    <div style="margin-top:8px"><span class="gestao-badge ${c.statusGestao==="Ativo"?"ok":"warn"}">${c.statusGestao}</span></div>
-  </div>`).join("");
-}
-function renderGestaoIndicadores(dados){
-  const salarios=dados.map(c=>Number(c.salario||0)).filter(v=>v>0);
-  $("gSalarioMenor").textContent=salarios.length?gMoeda(Math.min(...salarios)):"—";
-  $("gSalarioMaior").textContent=salarios.length?gMoeda(Math.max(...salarios)):"—";
-  $("gSalarioMedio").textContent=salarios.length?gMoeda(salarios.reduce((a,b)=>a+b,0)/salarios.length):"—";
-  $("gMassaSalarial").textContent=salarios.length?gMoeda(salarios.reduce((a,b)=>a+b,0)):"—";
-  $("gBrigadistas").textContent=dados.filter(c=>c.brigadista).length;
-  $("gMonitores").textContent=dados.filter(c=>c.monitorEvasao).length;
-  const infraCrit=(state.chamadosInfra||[]).filter(c=>criticidadeInfra(c)==="Alta"&&!statusConcluidoInfra(c.status)).length;
-  $("gInfraCriticos").textContent=infraCrit;
-  $("gIndicadorFerias").textContent=`${(state.ferias||[]).filter(f=>["Programada","Aprovada"].includes(f.status)).length} registros programados`;
-  $("gIndicadorBanco").textContent=`${dados.filter(c=>c.saldoMin!==null&&c.saldoMin<0).length} colaboradores negativos`;
-  $("gIndicadorTreinamento").textContent=`${(state.treinamentos||[]).filter(t=>["vencer","vencido"].includes(statusTreinamento(t.validade).chave)).length} críticos`;
-  $("gIndicadorInfra").textContent=`${infraCrit} chamados de alta criticidade`;
-}
-function gerarGestaoCobertura(){
-  const data=$("gCoberturaData").value;
-  const periodo=$("gCoberturaPeriodo").value;
-  if(!data)return alert("Selecione a data.");
-  const ativos=(state.colaboradores||[]).filter(c=>c.ativo!==false&&(c.regime||"TURNO")!=="ADM");
-  const disponiveis=ativos.filter(c=>!estaDeFerias(c.nome,data)&&!temFolgaAprovada(c.nome,data,periodo));
-  const cont={};disponiveis.forEach(c=>cont[gNivel(c.funcao)]=(cont[gNivel(c.funcao)]||0)+1);
-  const especialista=cont["Especialista"]||0, supervisor=cont["Supervisor"]||0;
-  const situacao=(especialista>=1&&supervisor>=1)?"regular":(especialista>=1||supervisor>=1)?"atencao":"critico";
-  $("gCoberturaResultado").innerHTML=`<div class="gestao-risk ${situacao}"><b>Cobertura ${formatDate(data)} — ${periodo}</b><br>
-    Supervisor: ${supervisor} • Especialista: ${especialista} • Sênior: ${cont["Sênior"]||0} • Pleno: ${cont["Pleno"]||0} • Júnior: ${cont["Júnior"]||0}
-  </div>`;
-}
-document.querySelectorAll("[data-gestao-tab]").forEach(btn=>btn.addEventListener("click",()=>{
-  document.querySelectorAll("[data-gestao-tab]").forEach(b=>b.classList.remove("active"));
-  document.querySelectorAll(".gestao-subview").forEach(v=>v.classList.remove("active"));
-  btn.classList.add("active");
-  $(btn.dataset.gestaoTab).classList.add("active");
-}));
-$("gBtnFiltrar").addEventListener("click",()=>{
-  const q=$("gPesquisaColaborador").value.trim().toUpperCase();
-  const st=$("gFiltroStatus").value;
-  const rg=$("gFiltroRegime").value;
-  const lista=gDadosColaboradores().filter(c=>
-    (!q||[c.nome,c.matricula,c.funcao].join(" ").toUpperCase().includes(q))
-    &&(!st||c.statusGestao===st)
-    &&(!rg||(c.regime||"TURNO")===rg)
-  );
-  renderGestaoTabela(lista);
-});
-$("gBtnCobertura").addEventListener("click",gerarGestaoCobertura);
-$("gCoberturaData").value=new Date().toISOString().slice(0,10);
-
 function renderDashboard(){
-  renderGestaoOperacional();
   $("kpiColaboradores").textContent=state.colaboradores.length;
   if($("bancoEquipeCadastrada")) $("bancoEquipeCadastrada").textContent=state.colaboradores.filter(c=>c.ativo!==false).length;
   $("kpiFolgasPendentes").textContent=state.folgas.filter(f=>f.status==="Pendente").length;
