@@ -130,6 +130,44 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 
 
 #infraPrintHeader{display:none}
+
+/* Modal compacto do novo chamado */
+#modalNovoInfra .modal-box{
+  width:min(760px,96vw);
+  max-height:88vh;
+  padding:16px;
+  border-radius:16px;
+  overflow:auto;
+}
+#modalNovoInfra .modal-head h3{font-size:19px}
+#modalNovoInfra .grid{
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+#modalNovoInfra label{
+  font-size:11px;
+  margin-bottom:4px;
+}
+#modalNovoInfra input,
+#modalNovoInfra select,
+#modalNovoInfra textarea{
+  padding:9px 10px;
+  border-radius:8px;
+}
+#modalNovoInfra textarea{
+  min-height:58px;
+  resize:vertical;
+}
+#modalNovoInfra .actions{margin-top:12px}
+#modalNovoInfra button{padding:9px 12px}
+@media(max-width:760px){
+  #modalNovoInfra .grid{grid-template-columns:1fr}
+  #modalNovoInfra .modal-box{
+    width:96vw;
+    max-height:92vh;
+  }
+}
+
 @media print{
   #infra.active #infraPrintHeader{display:block!important}
   #infra.active .infra-kpis{grid-template-columns:repeat(5,1fr)!important}
@@ -1764,9 +1802,9 @@ onAuthStateChanged(auth,async user=>{
       <div><label>Status</label><input id="novoInfraStatus" value="A PROGRAMAR"></div>
       <div><label>Criticidade</label><select id="novoInfraCriticidade"><option>Alta</option><option selected>Média</option><option>Baixa</option></select></div>
     </div>
-    <div style="margin-top:12px"><label>Serviço / descrição</label><textarea id="novoInfraServico" rows="4"></textarea></div>
-    <div style="margin-top:12px"><label>Comentário inicial</label><textarea id="novoInfraComentario" rows="3"></textarea></div>
-    <div style="margin-top:12px"><label>Próxima ação</label><textarea id="novoInfraAcao" rows="3"></textarea></div>
+    <div style="margin-top:12px"><label>Serviço / descrição</label><textarea id="novoInfraServico" rows="2"></textarea></div>
+    <div style="margin-top:12px"><label>Comentário inicial</label><textarea id="novoInfraComentario" rows="2"></textarea></div>
+    <div style="margin-top:12px"><label>Próxima ação</label><textarea id="novoInfraAcao" rows="2"></textarea></div>
     <div class="actions">
       <button id="btnSalvarNovoInfra" class="btn-green">Salvar chamado</button>
       <button id="btnCancelarNovoInfra" class="btn-gray">Cancelar</button>
