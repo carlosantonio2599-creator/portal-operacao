@@ -624,6 +624,11 @@ function setView(id){
 }
 
 function applyPermissions(){
+  // Restaura todos os módulos antes de aplicar as permissões do usuário atual.
+  // Isso evita que os módulos continuem ocultos após sair do perfil Infra
+  // e entrar novamente como Supervisor na mesma aba do navegador.
+  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("hidden"));
+
   document.querySelectorAll(".supervisor-only").forEach(el=>el.classList.toggle("hidden",!isSupervisor()));
   $("formFerias").classList.toggle("hidden",!isSupervisor());
   $("btnSalvarFerias").classList.toggle("hidden",!isSupervisor());
@@ -1762,6 +1767,11 @@ onAuthStateChanged(auth,async user=>{
         t.classList.toggle("hidden",t.dataset.view!=="infra");
       });
       setView("infra");
+    }else{
+      // Para Supervisor, Especialista e Operador, volta ao Dashboard
+      // e garante que os módulos permitidos estejam novamente visíveis.
+      applyPermissions();
+      setView("dashboard");
     }
     subscribeData();
   }catch(e){
