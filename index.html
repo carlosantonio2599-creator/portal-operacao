@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Versão: Gestão Equipe E - cabeçalho alinhado + banco de horas compatível -->
 <!-- Versão: Layout alinhado do Portal Gestão Equipe E -->
+<!-- Versão corrigida V2: alinhamento real usando .tabs e .container -->
 <title>Portal Equipe E - Gestão Integrada</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -446,6 +447,278 @@ table{width:100%!important}
     width:calc(100% - 24px)!important;
   }
   .view{padding-left:12px!important;padding-right:12px!important}
+}
+
+
+/* ===== CORREÇÃO DEFINITIVA DE ALINHAMENTO V2 ===== */
+:root{
+  --menu-lateral:260px;
+  --barra-superior:58px;
+}
+
+/* Estrutura principal */
+#appArea{
+  min-height:100vh;
+  background:#f3f6fa;
+  overflow-x:hidden;
+}
+
+/* Barra superior: começa depois do menu lateral */
+#appArea > .topbar{
+  position:fixed !important;
+  top:0 !important;
+  left:var(--menu-lateral) !important;
+  right:0 !important;
+  width:auto !important;
+  height:var(--barra-superior) !important;
+  margin:0 !important;
+  padding:0 18px !important;
+  z-index:1000 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  background:#173f69 !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.10) !important;
+}
+
+/* Menu lateral real do portal */
+#appArea main.container > nav.tabs{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  bottom:0 !important;
+  width:var(--menu-lateral) !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:92px 10px 20px !important;
+  z-index:1100 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  background:linear-gradient(180deg,#07366f 0%,#052b57 100%) !important;
+  box-shadow:4px 0 18px rgba(10,36,74,.18) !important;
+}
+
+/* Logomarca simulada do menu */
+#appArea main.container > nav.tabs::before{
+  top:24px !important;
+  left:28px !important;
+  width:190px !important;
+  color:#fff !important;
+  font-size:18px !important;
+  line-height:1.05 !important;
+}
+
+/* Botões do menu */
+#appArea main.container > nav.tabs > .tab{
+  position:relative !important;
+  width:100% !important;
+  min-height:43px !important;
+  margin:2px 0 !important;
+  padding:10px 12px !important;
+  border:0 !important;
+  border-radius:9px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  color:#eaf2ff !important;
+  background:transparent !important;
+  line-height:1.25 !important;
+  white-space:normal !important;
+  text-align:left !important;
+  overflow:visible !important;
+  box-shadow:none !important;
+}
+#appArea main.container > nav.tabs > .tab:hover{
+  background:rgba(255,255,255,.09) !important;
+}
+#appArea main.container > nav.tabs > .tab.active{
+  background:linear-gradient(90deg,#1555c4,#0b45a9) !important;
+  color:#fff !important;
+}
+
+/* Cabeçalhos superiores */
+#appArea > header.hero{
+  position:relative !important;
+  margin:calc(var(--barra-superior) + 16px) 22px 0 calc(var(--menu-lateral) + 22px) !important;
+  width:calc(100% - var(--menu-lateral) - 44px) !important;
+  min-height:82px !important;
+  padding:22px 26px !important;
+  border-radius:14px !important;
+  display:flex !important;
+  align-items:center !important;
+  background:linear-gradient(110deg,#052c88,#073dd0) !important;
+  color:#fff !important;
+  box-shadow:0 8px 22px rgba(15,38,100,.14) !important;
+  overflow:hidden !important;
+}
+#appArea > header.hero::before{
+  display:none !important;
+  content:none !important;
+}
+#appArea > header.hero h1{
+  position:relative !important;
+  z-index:1 !important;
+  margin:0 !important;
+  font-size:30px !important;
+  line-height:1.1 !important;
+  color:#fff !important;
+}
+
+#appArea > .faixa{
+  margin:8px 22px 16px calc(var(--menu-lateral) + 22px) !important;
+  width:calc(100% - var(--menu-lateral) - 44px) !important;
+  min-height:62px !important;
+  padding:14px 20px !important;
+  border-radius:13px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:linear-gradient(90deg,#ff7b25,#ff6c1a) !important;
+  color:#fff !important;
+  font-size:25px !important;
+  font-weight:900 !important;
+  text-align:center !important;
+  box-shadow:0 7px 18px rgba(255,118,37,.15) !important;
+}
+
+/* Conteúdo principal real */
+#appArea > main.container{
+  max-width:none !important;
+  width:calc(100% - var(--menu-lateral)) !important;
+  margin:0 0 0 var(--menu-lateral) !important;
+  padding:0 22px 30px !important;
+  background:#f3f6fa !important;
+}
+
+/* Views */
+#appArea > main.container > section.view{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+#appArea > main.container > section.view > .card{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+/* Cabeçalho do módulo */
+#gestao .section-head{
+  margin:0 0 14px !important;
+  padding:0 !important;
+}
+#gestao .section-head .icon{
+  display:none !important;
+}
+#gestao .section-head h2{
+  margin:0 !important;
+  font-size:25px !important;
+  color:#102b56 !important;
+}
+
+/* Abas internas */
+#gestao .gestao-tabs{
+  width:100% !important;
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:8px !important;
+  margin:0 0 14px !important;
+}
+#gestao .gestao-tabs button{
+  min-height:42px !important;
+  padding:9px 14px !important;
+}
+
+/* Indicadores e painéis */
+#gestao .gestao-kpis{
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+  gap:12px !important;
+  margin:0 0 14px !important;
+}
+#gestao .gestao-kpi{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:90px !important;
+}
+#gestao .gestao-grid2{
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:14px !important;
+}
+#gestao .gestao-grid3{
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:14px !important;
+}
+#gestao .gestao-panel{
+  width:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+#gestao .gestao-bar-row{
+  display:grid !important;
+  grid-template-columns:145px minmax(0,1fr) 42px !important;
+  gap:10px !important;
+  align-items:center !important;
+}
+#gestao .gestao-scroll{
+  width:100% !important;
+  overflow:auto !important;
+}
+
+/* Responsividade */
+@media(max-width:1250px){
+  #gestao .gestao-kpis{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:980px){
+  :root{--menu-lateral:220px}
+  #gestao .gestao-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  #gestao .gestao-grid2,
+  #gestao .gestao-grid3{
+    grid-template-columns:1fr !important;
+  }
+}
+@media(max-width:760px){
+  :root{--menu-lateral:0px}
+  #appArea > .topbar{
+    left:0 !important;
+  }
+  #appArea main.container > nav.tabs{
+    position:relative !important;
+    top:auto !important;
+    width:100% !important;
+    height:auto !important;
+    padding:18px 10px !important;
+  }
+  #appArea main.container > nav.tabs::before{
+    display:none !important;
+  }
+  #appArea > header.hero{
+    margin:calc(var(--barra-superior) + 12px) 12px 0 !important;
+    width:calc(100% - 24px) !important;
+  }
+  #appArea > .faixa{
+    margin:8px 12px 14px !important;
+    width:calc(100% - 24px) !important;
+  }
+  #appArea > main.container{
+    width:100% !important;
+    margin:0 !important;
+    padding:0 12px 24px !important;
+  }
 }
 
 </style>
