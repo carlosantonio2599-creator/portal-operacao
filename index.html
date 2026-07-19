@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Versão 4: novo controle de acesso por perfil -->
 <!-- Versão 4.1: cabeçalho corporativo -->
+<!-- Versão 4.2: importação ampliada do Banco de Horas -->
 <title>Portal Equipe E - Gestão Integrada</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -532,6 +533,35 @@ table thead th{
   }
 }
 
+
+/* ===== V4.2 — Retorno visual da importação do banco de horas ===== */
+.status-importacao-banco{
+  margin-top:12px;
+  padding:11px 13px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.45;
+}
+.status-importacao-banco.processando{
+  display:block!important;
+  background:#eef6ff;
+  border:1px solid #9ec5ff;
+  color:#0b3f91;
+}
+.status-importacao-banco.sucesso{
+  display:block!important;
+  background:#dcfce7;
+  border:1px solid #86efac;
+  color:#166534;
+}
+.status-importacao-banco.erro{
+  display:block!important;
+  background:#fee2e2;
+  border:1px solid #fca5a5;
+  color:#991b1b;
+}
+
 </style>
 </head>
 <body>
@@ -723,7 +753,12 @@ table thead th{
         <div class="import-box supervisor-only no-print">
           <label>Importar planilha semanal do RH (XLSX, XLS ou CSV)</label>
           <input id="arquivoBanco" type="file" accept=".xlsx,.xls,.csv">
-          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">A planilha pode conter as colunas Nome, Matrícula e Saldo/Banco de Horas. Serão importados somente os colaboradores cadastrados na sua gestão. Cada folga pendente ou aprovada reserva 07:00 do saldo.</p>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">
+      Compatível com a planilha <b>Banco de horas do time</b>, mesmo quando o cabeçalho começa após linhas de título e data.
+      Colunas reconhecidas: Nome, Cargo, Total Banco, Matrícula e Saldo/Banco de Horas.
+      Serão importados somente os colaboradores cadastrados na equipe. Cada folga pendente ou aprovada reserva 07:00 do saldo.
+    </p>
+    <div id="statusImportacaoBanco" class="status-importacao-banco hidden"></div>
         </div>
         <div class="filters no-print" style="margin-top:14px">
           <div><label>Pesquisar colaborador</label><input id="pesquisaBanco" placeholder="Nome ou matrícula"></div>
@@ -1322,6 +1357,220 @@ function renderBanco(list=state.bancoHoras){
     </tr>`;
   }).join("");
 }
+
+
+/* ===== Importação robusta do Banco de Horas — V4.2 ===== */
+
+function textoCabecalho(valor){
+  return normalizarNome(valor).replace(/[^A-Z0-9 ]/g," ").replace(/\s+/g," ").trim();
+}
+
+function localizarLinhaCabecalhoBanco(matriz){
+  const aliasesNome=["NOME","COLABORADOR","FUNCIONARIO","FUNCIONÁRIO"];
+  const aliasesSaldo=["TOTAL BANCO","SALDO","SALDO BANCO","BANCO DE HORAS","TOTAL DE BANCO","HORAS"];
+  for(let i=0;i<Math.min(matriz.length,30);i++){
+    const linha=(matriz[i]||[]).map(textoCabecalho);
+    const temNome=linha.some(v=>aliasesNome.includes(v));
+    const temSaldo=linha.some(v=>aliasesSaldo.includes(v));
+    if(temNome && temSaldo)return i;
+  }
+  return -1;
+}
+
+function encontrarIndiceCabecalho(cabecalhos, aliases){
+  const normalizados=cabecalhos.map(textoCabecalho);
+  return normalizados.findIndex(v=>aliases.includes(v));
+}
+
+function dataReferenciaDaPlanilha(matriz){
+  for(let i=0;i<Math.min(matriz.length,8);i++){
+    for(const valor of (matriz[i]||[])){
+      if(!valor)continue;
+      if(valor instanceof Date && !isNaN(valor)){
+        return valor.toISOString().slice(0,10);
+      }
+      if(typeof valor==="number"){
+        const d=XLSX.SSF.parse_date_code(valor);
+        if(d)return `${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`;
+      }
+      const s=String(valor).trim();
+      const porExtenso=s.match(/(\d{1,2})\s+de\s+([a-zç]+)\.?\s+de\s+(\d{4})/i);
+      if(porExtenso){
+        const meses={
+          janeiro:1,fevereiro:2,marco:3,"março":3,abril:4,maio:5,junho:6,
+          julho:7,agosto:8,setembro:9,outubro:10,novembro:11,dezembro:12
+        };
+        const mes=meses[porExtenso[2].toLowerCase()];
+        if(mes)return `${porExtenso[3]}-${String(mes).padStart(2,"0")}-${String(porExtenso[1]).padStart(2,"0")}`;
+      }
+      const comum=s.match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+      if(comum)return `${comum[3]}-${comum[2].padStart(2,"0")}-${comum[1].padStart(2,"0")}`;
+    }
+  }
+  return new Date().toISOString().slice(0,10);
+}
+
+function lerLinhasBancoDaPlanilha(workbook){
+  let melhor=null;
+
+  for(const nomeAba of workbook.SheetNames){
+    const sheet=workbook.Sheets[nomeAba];
+    const matriz=XLSX.utils.sheet_to_json(sheet,{
+      header:1,
+      defval:"",
+      raw:false,
+      blankrows:false
+    });
+
+    const linhaCabecalho=localizarLinhaCabecalhoBanco(matriz);
+    if(linhaCabecalho<0)continue;
+
+    const cabecalhos=matriz[linhaCabecalho]||[];
+    const idxNome=encontrarIndiceCabecalho(cabecalhos,["NOME","COLABORADOR","FUNCIONARIO","FUNCIONÁRIO"]);
+    const idxCargo=encontrarIndiceCabecalho(cabecalhos,["CARGO","FUNCAO","FUNÇÃO"]);
+    const idxMatricula=encontrarIndiceCabecalho(cabecalhos,["MATRICULA","MATRÍCULA","REGISTRO"]);
+    const idxSaldo=encontrarIndiceCabecalho(cabecalhos,[
+      "TOTAL BANCO","SALDO","SALDO BANCO","BANCO DE HORAS","TOTAL DE BANCO","HORAS"
+    ]);
+
+    if(idxNome<0 || idxSaldo<0)continue;
+
+    const registros=matriz.slice(linhaCabecalho+1).map(linha=>({
+      nome:String(linha[idxNome]??"").trim(),
+      cargo:idxCargo>=0?String(linha[idxCargo]??"").trim():"",
+      matricula:idxMatricula>=0?String(linha[idxMatricula]??"").trim():"",
+      saldo:String(linha[idxSaldo]??"").trim()
+    })).filter(r=>r.nome && r.saldo!=="");
+
+    if(!melhor || registros.length>melhor.registros.length){
+      melhor={
+        registros,
+        dataReferencia:dataReferenciaDaPlanilha(matriz),
+        aba:nomeAba
+      };
+    }
+  }
+
+  if(!melhor){
+    throw new Error("Não foi localizado um cabeçalho com as colunas Nome e Total Banco/Saldo.");
+  }
+  return melhor;
+}
+
+function localizarColaboradorImportacao(registro){
+  const matricula=String(registro.matricula||"").trim();
+  const nome=normalizarNome(registro.nome);
+
+  return state.colaboradores.find(c=>
+    c.ativo!==false && (
+      (matricula && String(c.matricula||"").trim()===matricula)
+      || normalizarNome(c.nome)===nome
+    )
+  )||null;
+}
+
+function mostrarStatusImportacaoBanco(tipo,mensagem){
+  const box=$("statusImportacaoBanco");
+  if(!box)return;
+  box.className=`status-importacao-banco ${tipo}`;
+  box.innerHTML=mensagem;
+}
+
+$("arquivoBanco")?.addEventListener("change",e=>{
+  if(!isSupervisor()){
+    e.target.value="";
+    alert("Somente o Supervisor pode importar a planilha do banco de horas.");
+    return;
+  }
+
+  const file=e.target.files?.[0];
+  if(!file)return;
+
+  mostrarStatusImportacaoBanco("processando","Lendo e validando a planilha...");
+
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      let workbook;
+      if(file.name.toLowerCase().endsWith(".csv")){
+        const texto=new TextDecoder("utf-8").decode(ev.target.result);
+        workbook=XLSX.read(texto,{type:"string",cellDates:true});
+      }else{
+        workbook=XLSX.read(ev.target.result,{type:"array",cellDates:true});
+      }
+
+      const importacao=lerLinhasBancoDaPlanilha(workbook);
+      let importados=0;
+      let atualizados=0;
+      let ignorados=0;
+      const naoEncontrados=[];
+
+      for(const registro of importacao.registros){
+        const colaborador=localizarColaboradorImportacao(registro);
+        if(!colaborador){
+          ignorados++;
+          naoEncontrados.push(registro.nome);
+          continue;
+        }
+
+        const existente=state.bancoHoras.find(b=>
+          b.colaboradorId===colaborador.id
+          || (colaborador.matricula && String(b.matricula||"").trim()===String(colaborador.matricula).trim())
+          || normalizarNome(b.nome)===normalizarNome(colaborador.nome)
+        );
+
+        const payload={
+          colaboradorId:colaborador.id,
+          nome:colaborador.nome,
+          matricula:String(colaborador.matricula||registro.matricula||"").trim(),
+          cargo:registro.cargo||colaborador.cargo||"",
+          saldo:saldoFormatado(registro.saldo),
+          dataReferencia:importacao.dataReferencia,
+          origemArquivo:file.name,
+          alteradoPor:state.user.uid,
+          alteradoEm:serverTimestamp()
+        };
+
+        if(existente){
+          await updateDoc(doc(db,"banco_horas",existente.id),payload);
+          atualizados++;
+        }else{
+          await addDoc(collection(db,"banco_horas"),{
+            ...payload,
+            criadoPor:state.user.uid,
+            criadoEm:serverTimestamp()
+          });
+          importados++;
+        }
+      }
+
+      if($("bancoImportadosUltimo"))$("bancoImportadosUltimo").textContent=importados+atualizados;
+      if($("bancoIgnoradosUltimo"))$("bancoIgnoradosUltimo").textContent=ignorados;
+
+      let detalheNaoEncontrados="";
+      if(naoEncontrados.length){
+        detalheNaoEncontrados=`<br><span style="font-weight:500">Não localizados na equipe: ${naoEncontrados.slice(0,8).join(", ")}${naoEncontrados.length>8?"...":""}</span>`;
+      }
+
+      mostrarStatusImportacaoBanco(
+        "sucesso",
+        `Importação concluída — Aba: <b>${importacao.aba}</b> • Data de referência: <b>${formatDate(importacao.dataReferencia)}</b><br>
+         Novos: <b>${importados}</b> • Atualizados: <b>${atualizados}</b> • Ignorados: <b>${ignorados}</b>${detalheNaoEncontrados}`
+      );
+      e.target.value="";
+    }catch(err){
+      console.error(err);
+      mostrarStatusImportacaoBanco("erro","Falha ao importar: "+err.message);
+      e.target.value="";
+    }
+  };
+  reader.onerror=()=>{
+    mostrarStatusImportacaoBanco("erro","Não foi possível ler o arquivo selecionado.");
+    e.target.value="";
+  };
+  reader.readAsArrayBuffer(file);
+});
+
 
 function renderDashboard(){
   $("kpiColaboradores").textContent=state.colaboradores.length;
