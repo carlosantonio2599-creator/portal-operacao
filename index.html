@@ -425,7 +425,7 @@ table thead th{
 }
 
 .hero h1::after{
-  content:"Portal Integrado da Supervisão de Operação";
+  content:"";
   display:block;
   margin-top:7px;
   font-size:13px;
@@ -563,13 +563,21 @@ table thead th{
 }
 
 </style>
+
+<style>
+.btn-pdf-rota,.pdf-rota,[data-action="pdf-rota"]{
+background:#f57c00!important;
+border-color:#f57c00!important;
+color:#fff!important;
+}
+</style>
 </head>
 <body>
 
 <section id="loginArea" class="login">
   <div class="login-card">
-    <h1>Portal Equipe E</h1>
-    <p style="color:var(--muted)">Folgas e férias com banco de dados compartilhado.</p>
+    <h1>Gestão Equipe E</h1>
+    <p style="color:var(--muted)"></p>
     <label>E-mail</label>
     <input id="loginEmail" type="email" autocomplete="username">
     <div style="height:10px"></div>
@@ -600,7 +608,7 @@ table thead th{
       <button class="tab" data-view="aprovacao">✓ Aprovação</button>
       <button class="tab" data-view="ferias">🏖 Férias</button>
       <button class="tab" data-view="banco">⏱ Banco de Horas</button>
-      <button class="tab" data-view="rotas">🚐 Rota 6 Dias</button>
+      <button class="tab" data-view="rotas">🚐 Rota</button>
       <button class="tab" data-view="treinamentos">🎓 Treinamentos</button>
       <button class="tab infra-access" data-view="infra">🏢 Infraestrutura</button>
       <button class="tab supervisor-only" data-view="colaboradores">👤 Colaboradores</button>
