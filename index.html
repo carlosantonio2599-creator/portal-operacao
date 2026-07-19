@@ -6,7 +6,8 @@
 <!-- Versão 4: novo controle de acesso por perfil -->
 <!-- Versão 4.1: cabeçalho corporativo -->
 <!-- Versão 4.2: importação ampliada do Banco de Horas -->
-<title>Portal Equipe E - Gestão Integrada</title>
+<!-- Versão 4.3.2: rota em laranja, folgas aprovadas para operador e remoção do efetivo semanal -->
+<title>Gestão Equipe E - V4.3.2</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
@@ -92,33 +93,15 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 
 
 .rota-dia{margin-bottom:18px;border:1px solid var(--linha);border-radius:14px;overflow:hidden;background:#fff}
-.rota-cabecalho{background:#fff500;color:#111;padding:10px 14px;font-weight:900;text-align:center;text-transform:uppercase}
+.rota-cabecalho{background:#f47721;color:#fff;padding:10px 14px;font-weight:900;text-align:center;text-transform:uppercase}
 .rota-veiculo{background:#d9e8f6;font-weight:900}
 .rota-vazio{padding:16px;color:var(--muted);text-align:center}
 .rota-filtros{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
 @media(max-width:760px){.rota-filtros{grid-template-columns:1fr}}
 
 
-.efetivo-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
-.efetivo-lista{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.efetivo-item{border:1px solid var(--linha);border-radius:12px;padding:12px;background:#fff}
-.efetivo-item strong{color:var(--azul-escuro)}
-.status-presente{border-left:5px solid var(--verde)}
-.status-folga{border-left:5px solid var(--laranja)}
-.status-ferias{border-left:5px solid #2563eb}
-.status-adm{border-left:5px solid #64748b}
-@media(max-width:900px){.efetivo-cards{grid-template-columns:repeat(2,1fr)}.efetivo-lista{grid-template-columns:1fr}}
-@media(max-width:520px){.efetivo-cards{grid-template-columns:1fr}}
 
 
-.semana-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.dia-semana{border:1px solid var(--linha);border-radius:14px;background:#fff;overflow:hidden}
-.dia-semana-cab{background:#dceaf6;color:#082f49;padding:11px 12px;font-weight:900}
-.dia-semana-corpo{padding:10px}
-.dia-semana-item{padding:8px 10px;border-bottom:1px solid var(--linha)}
-.dia-semana-item:last-child{border-bottom:0}
-@media(max-width:900px){.semana-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.semana-grid{grid-template-columns:1fr}}
 
 
 .infra-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
@@ -562,6 +545,73 @@ table thead th{
   color:#991b1b;
 }
 
+
+/* ===== V4.3.2 — Impressão da Rota ===== */
+.rota-cabecalho{
+  background:#f47721 !important;
+  color:#fff !important;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+.btn-pdf-rota{
+  background:#f47721 !important;
+  border-color:#f47721 !important;
+  color:#fff !important;
+}
+@media print{
+  #rotas.active .rota-dia{
+    break-inside:avoid-page !important;
+    page-break-inside:avoid !important;
+    margin:0 0 8mm !important;
+    border:1px solid #cbd5e1 !important;
+    border-radius:0 !important;
+    overflow:visible !important;
+  }
+  #rotas.active .rota-cabecalho{
+    background:#f47721 !important;
+    color:#fff !important;
+    font-size:12px !important;
+    padding:7px 10px !important;
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
+  #rotas.active table{
+    width:100% !important;
+    table-layout:fixed !important;
+    margin:0 !important;
+  }
+  #rotas.active thead{
+    display:table-header-group !important;
+  }
+  #rotas.active th{
+    background:#eef3f8 !important;
+    color:#263d5d !important;
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
+  #rotas.active th,
+  #rotas.active td{
+    font-size:8.5px !important;
+    padding:4px 5px !important;
+    vertical-align:top !important;
+    word-break:break-word !important;
+  }
+  #rotas.active th:last-child,
+  #rotas.active td:last-child{
+    display:table-cell !important;
+  }
+  #rotas.active .rota-veiculo{
+    background:#d9e8f6 !important;
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
+  #rotas.active .section-head,
+  #rotas.active .rota-filtros,
+  #rotas.active .card > div[style*="background:#eef6ff"]{
+    display:none !important;
+  }
+}
+
 </style>
 
 <style>
@@ -598,12 +648,9 @@ color:#fff!important;
     <h1>Gestão Equipe E</h1>
   </header>
 
-  <div class="faixa">Operação Diamante</div>
-
   <main class="container">
     <nav class="tabs no-print">
       <button class="tab active" data-view="dashboard">⌂ Dashboard Geral</button>
-      <button class="tab" data-view="efetivo">👥 Efetivo da Semana</button>
       <button class="tab" data-view="pedido">📅 Pedido de Folga</button>
       <button class="tab" data-view="aprovacao">✓ Aprovação</button>
       <button class="tab" data-view="ferias">🏖 Férias</button>
@@ -632,39 +679,6 @@ color:#fff!important;
           <div class="section-head"><div class="icon">!</div><h2>Alertas</h2></div>
           <div id="alertasDashboard"></div>
         </div>
-      </div>
-    </section>
-
-
-    <section id="efetivo" class="view">
-      <div class="card">
-        <div class="section-head"><div class="icon">👥</div><h2>Efetivo da Semana de Trabalho — Equipe E</h2></div>
-
-        <div class="filters no-print">
-          <div>
-            <label>Primeiro dia do ciclo</label>
-            <input id="efetivoData" type="date">
-          </div>
-          <div>
-            <label>Sequência de trabalho</label>
-            <input value="Manhã, Manhã, Tarde, Tarde, Noite, Noite" disabled>
-          </div>
-          <div class="actions" style="margin:0">
-            <button id="btnGerarEfetivo" class="btn-blue">Gerar semana</button>
-            <button id="btnImprimirEfetivo" class="btn-orange">Imprimir</button>
-          </div>
-        </div>
-
-        <div class="efetivo-cards" style="margin-top:14px">
-          <div class="kpi"><div id="efetivoTotal" class="value">0</div><div class="label">Total cadastrado</div></div>
-          <div class="kpi"><div id="efetivoPresentes" class="value">0</div><div class="label">Presenças previstas</div></div>
-          <div class="kpi"><div id="efetivoFolga" class="value">0</div><div class="label">Folgas na semana</div></div>
-          <div class="kpi"><div id="efetivoFerias" class="value">0</div><div class="label">Férias na semana</div></div>
-          <div class="kpi"><div id="efetivoAdm" class="value">0</div><div class="label">Colaboradores ADM</div></div>
-        </div>
-
-        <div id="resumoEfetivo" style="margin-bottom:12px;color:var(--muted)"></div>
-        <div id="listaEfetivo" class="semana-grid"></div>
       </div>
     </section>
 
@@ -834,7 +848,7 @@ color:#fff!important;
 
     <section id="rotas" class="view">
       <div class="card">
-        <div class="section-head"><div class="icon">🚐</div><h2>Programação de Rota — 6 Dias de Turno</h2></div>
+        <div class="section-head"><div class="icon">🚐</div><h2>Programação de Rota</h2></div>
 
         <div class="rota-filtros no-print">
           <div>
@@ -847,7 +861,7 @@ color:#fff!important;
           </div>
           <div class="actions" style="margin:0">
             <button id="btnGerarRota" class="btn-blue">Gerar rota</button>
-            <button id="btnImprimirRota" class="btn-orange">Imprimir</button>
+            <button id="btnImprimirRota" class="btn-orange btn-pdf-rota" data-action="pdf-rota">📄 PDF da Rota</button>
           </div>
         </div>
 
@@ -1003,14 +1017,14 @@ const perfilAtual = () => String(state.profile?.perfil||"").toLowerCase();
 
 const permissoesPorPerfil = {
   supervisor: [
-    "dashboard","efetivo","pedido","aprovacao","ferias",
+    "dashboard","pedido","aprovacao","ferias",
     "banco","rotas","treinamentos","infra","colaboradores"
   ],
   especialista: [
     "pedido","aprovacao","banco","rotas","ferias","infra"
   ],
   operador: [
-    "pedido","banco"
+    "pedido","aprovacao","banco"
   ],
   infra: [
     "infra"
@@ -1081,6 +1095,14 @@ function applyPermissions(){
   // Ações de aprovação de folgas somente para Supervisor e Especialista.
   $("btnExcluirReprovadas")?.classList.toggle("hidden",!isGestor());
   $("btnImprimirFolgas")?.classList.toggle("hidden",!isGestor());
+
+  // Operador consulta somente as folgas aprovadas, sem qualquer ação de edição.
+  const tituloFolgas=document.querySelector("#aprovacao .section-head h2");
+  if(tituloFolgas){
+    tituloFolgas.textContent=perfilAtual()==="operador"
+      ? "Folgas aprovadas"
+      : "Folgas para análise";
+  }
 }
 
 function showLogin(message=""){
@@ -1096,7 +1118,7 @@ function showApp(){
   const resumo={
     supervisor:"Acesso completo",
     especialista:"Folgas, Banco de Horas, Rotas, Férias e Infraestrutura",
-    operador:"Pedido de Folga e Banco de Horas",
+    operador:"Pedido de Folga, Folgas Aprovadas e Banco de Horas",
     infra:"Infraestrutura"
   };
   if($("acessoResumo"))$("acessoResumo").textContent=resumo[perfilAtual()]||"";
@@ -1121,7 +1143,6 @@ function subscribeData(){
       state.colaboradores=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderCollaborators();
       populateCollaborators();
-      if($("efetivoData")?.value) gerarEfetivoSemana();
       renderDashboard();
     },err=>alert("Erro ao carregar colaboradores: "+err.message))
   );
@@ -1130,7 +1151,6 @@ function subscribeData(){
     onSnapshot(query(collection(db,"solicitacoes_folga"),orderBy("data","asc")),snap=>{
       state.folgas=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFolgas();
-      if($("efetivoData")?.value) gerarEfetivoSemana();
       renderBanco();
       atualizarAvisoSaldoFolga();
       renderDashboard();
@@ -1172,7 +1192,6 @@ function subscribeData(){
       state.ferias=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderFerias();
       populateCollaborators();
-      if($("efetivoData")?.value) gerarEfetivoSemana();
       renderDashboard();
     },err=>alert("Erro ao carregar férias: "+err.message))
   );
@@ -1197,6 +1216,9 @@ function statusBadge(status){
 }
 
 function renderFolgas(list=state.folgas){
+  if(perfilAtual()==="operador"){
+    list=list.filter(f=>f.status==="Aprovada");
+  }
   $("tbodyFolgas").innerHTML=list.map(f=>{
     const actions=isGestor()
       ? `${f.status==="Aprovada" ? `<button class="btn-edit" data-action="edit-folga" data-id="${f.id}">Editar</button>` : ""}
@@ -2317,105 +2339,6 @@ $("btnImprimirRota").addEventListener("click",()=>{
 });
 
 
-function situacaoColaboradorNoDia(colaborador,data,periodo){
-  if((colaborador.regime||"TURNO")==="ADM"){
-    return {chave:"adm",texto:"ADM"};
-  }
-
-  const ferias=state.ferias.some(f=>
-    normalizarNome(f.nome)===normalizarNome(colaborador.nome)
-    && ["Programada","Aprovada"].includes(f.status)
-    && data>=f.inicio
-    && data<=f.fim
-  );
-  if(ferias)return {chave:"ferias",texto:"Férias"};
-
-  const folga=state.folgas.some(f=>
-    normalizarNome(f.nome)===normalizarNome(colaborador.nome)
-    && f.status==="Aprovada"
-    && f.data===data
-    && String(f.periodo||f.turno||"").toLowerCase()===periodo.toLowerCase()
-  );
-  if(folga)return {chave:"folga",texto:"Folga aprovada"};
-
-  return {chave:"presente",texto:"Irá à usina"};
-}
-
-function adicionarDiasIso(iso,dias){
-  const d=new Date(iso+"T00:00:00");
-  d.setDate(d.getDate()+dias);
-  return d.toISOString().slice(0,10);
-}
-
-function gerarEfetivoSemana(){
-  const inicio=$("efetivoData").value;
-  if(!inicio){
-    alert("Selecione o primeiro dia do ciclo.");
-    return;
-  }
-
-  const periodos=["Manhã","Manhã","Tarde","Tarde","Noite","Noite"];
-  const ativos=state.colaboradores.filter(c=>c.ativo!==false);
-  let totalPresencas=0;
-  let totalFolgas=0;
-  let totalFerias=0;
-  const adm=ativos.filter(c=>(c.regime||"TURNO")==="ADM").length;
-  let htmlSemana="";
-
-  for(let i=0;i<6;i++){
-    const data=adicionarDiasIso(inicio,i);
-    const periodo=periodos[i];
-
-    const resultado=ativos.map(c=>({
-      ...c,
-      situacao:situacaoColaboradorNoDia(c,data,periodo)
-    }));
-
-    const presentes=resultado.filter(c=>c.situacao.chave==="presente");
-    const folgas=resultado.filter(c=>c.situacao.chave==="folga");
-    const ferias=resultado.filter(c=>c.situacao.chave==="ferias");
-
-    totalPresencas+=presentes.length;
-    totalFolgas+=folgas.length;
-    totalFerias+=ferias.length;
-
-    htmlSemana+=`<div class="dia-semana">
-      <div class="dia-semana-cab">${formatDate(data)} — ${periodo}</div>
-      <div class="dia-semana-corpo">`;
-
-    if(!presentes.length){
-      htmlSemana+=`<div style="color:var(--muted)">Nenhum colaborador previsto.</div>`;
-    }else{
-      htmlSemana+=presentes.map(c=>`
-        <div class="dia-semana-item">
-          <strong>${c.nome||""}</strong><br>
-          <span style="font-size:12px;color:var(--muted)">${c.funcao||"Função não informada"}</span>
-          <div style="font-size:12px;margin-top:4px">Veículo: ${c.veiculo||"não definido"} • ${c.horario||"horário não definido"}</div>
-        </div>
-      `).join("");
-    }
-
-    htmlSemana+=`</div></div>`;
-  }
-
-  $("efetivoTotal").textContent=ativos.length;
-  $("efetivoPresentes").textContent=totalPresencas;
-  $("efetivoFolga").textContent=totalFolgas;
-  $("efetivoFerias").textContent=totalFerias;
-  $("efetivoAdm").textContent=adm;
-
-  $("resumoEfetivo").innerHTML=`Semana de trabalho iniciando em <b>${formatDate(inicio)}</b> — sequência <b>M, M, T, T, N, N</b>.`;
-  $("listaEfetivo").innerHTML=htmlSemana;
-}
-
-$("btnGerarEfetivo").addEventListener("click",gerarEfetivoSemana);
-$("btnImprimirEfetivo").addEventListener("click",()=>{
-  gerarEfetivoSemana();
-  setView("efetivo");
-  window.print();
-});
-
-$("efetivoData").value=new Date().toISOString().slice(0,10);
 
 onAuthStateChanged(auth,async user=>{
   if(!user){
