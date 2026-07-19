@@ -315,6 +315,146 @@ table thead th{
       <button class="tab infra-access" data-view="infra">🏢 Infraestrutura</button>
       <button class="tab supervisor-only" data-view="colaboradores">👤 Colaboradores</button>
     </nav>
+
+    <section id="gestao" class="view">
+      <div class="card">
+        <div class="section-head">
+          <div class="icon">📊</div>
+          <h2>Gestão Operacional — Equipe E</h2>
+        </div>
+
+        <div class="gestao-tabs no-print">
+          <button class="active" data-gestao-tab="gestaoDashboard">Dashboard</button>
+          <button data-gestao-tab="gestaoColaboradores">Colaboradores</button>
+          <button data-gestao-tab="gestaoTreinamentos">Treinamentos</button>
+          <button data-gestao-tab="gestaoDesenvolvimento">Desenvolvimento</button>
+          <button data-gestao-tab="gestaoCobertura">Escala e Cobertura</button>
+          <button data-gestao-tab="gestaoIndicadores">Indicadores Gerenciais</button>
+        </div>
+
+        <div id="gestaoDashboard" class="gestao-subview active">
+          <div class="gestao-kpis">
+            <div class="gestao-kpi"><div id="gTotal" class="valor">0</div><div class="rotulo">Total de colaboradores</div></div>
+            <div class="gestao-kpi"><div id="gAtivos" class="valor">0</div><div class="rotulo">Ativos</div></div>
+            <div class="gestao-kpi"><div id="gFerias" class="valor">0</div><div class="rotulo">Em férias</div></div>
+            <div class="gestao-kpi"><div id="gNovos" class="valor">0</div><div class="rotulo">Menos de 1 ano</div></div>
+            <div class="gestao-kpi"><div id="gTempo" class="valor">0</div><div class="rotulo">Tempo médio</div></div>
+            <div class="gestao-kpi"><div id="gBancoNegativo" class="valor">0</div><div class="rotulo">Banco negativo</div></div>
+            <div class="gestao-kpi"><div id="gTreinamentos" class="valor">0</div><div class="rotulo">Treinamentos críticos</div></div>
+          </div>
+
+          <div class="gestao-grid2">
+            <div class="gestao-panel"><h3>Distribuição por função</h3><div id="gGraficoFuncao"></div></div>
+            <div class="gestao-panel"><h3>Tempo de empresa</h3><div id="gGraficoTempo"></div></div>
+          </div>
+
+          <div class="gestao-grid2">
+            <div class="gestao-panel"><h3>Alertas de gestão</h3><div id="gAlertas"></div></div>
+            <div class="gestao-panel"><h3>Planejamento da supervisão</h3><div id="gPlanejamentoResumo"></div></div>
+          </div>
+        </div>
+
+        <div id="gestaoColaboradores" class="gestao-subview">
+          <div class="gestao-toolbar no-print">
+            <div>
+              <label>Pesquisar colaborador</label>
+              <input id="gPesquisaColaborador" placeholder="Nome, matrícula ou função">
+            </div>
+            <div>
+              <label>Status</label>
+              <select id="gFiltroStatus">
+                <option value="">Todos</option>
+                <option>Ativo</option>
+                <option>Férias</option>
+                <option>Afastado</option>
+              </select>
+            </div>
+            <div>
+              <label>Regime</label>
+              <select id="gFiltroRegime">
+                <option value="">Todos</option>
+                <option>TURNO</option>
+                <option>ADM</option>
+              </select>
+            </div>
+            <div><button id="gBtnFiltrar" class="btn-blue">Filtrar</button></div>
+          </div>
+
+          <div class="gestao-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th><th>Matrícula</th><th>Função</th><th>Regime</th>
+                  <th>Admissão</th><th>Tempo</th><th>Status</th><th>Banco</th>
+                </tr>
+              </thead>
+              <tbody id="gTabelaColaboradores"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="gestaoTreinamentos" class="gestao-subview">
+          <div class="gestao-panel">
+            <h3>Matriz de treinamentos e competências</h3>
+            <div class="gestao-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Colaborador</th><th>NR-10</th><th>NR-33</th><th>NR-35</th>
+                    <th>Brigada</th><th>PT Eletrônica</th><th>Reciclagem</th><th>Próximo vencimento</th>
+                  </tr>
+                </thead>
+                <tbody id="gTabelaTreinamentos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="gestaoDesenvolvimento" class="gestao-subview">
+          <div class="gestao-grid3" id="gCardsColaboradores"></div>
+        </div>
+
+        <div id="gestaoCobertura" class="gestao-subview">
+          <div class="gestao-panel">
+            <h3>Escala e cobertura operacional</h3>
+            <div class="gestao-toolbar no-print">
+              <div><label>Data</label><input id="gCoberturaData" type="date"></div>
+              <div>
+                <label>Período</label>
+                <select id="gCoberturaPeriodo">
+                  <option>Manhã</option><option>Tarde</option><option>Noite</option>
+                </select>
+              </div>
+              <div><button id="gBtnCobertura" class="btn-blue">Gerar cobertura</button></div>
+            </div>
+            <div id="gCoberturaResultado"></div>
+          </div>
+        </div>
+
+        <div id="gestaoIndicadores" class="gestao-subview">
+          <div class="gestao-kpis">
+            <div class="gestao-kpi"><div id="gSalarioMenor" class="valor">—</div><div class="rotulo">Menor salário</div></div>
+            <div class="gestao-kpi"><div id="gSalarioMaior" class="valor">—</div><div class="rotulo">Maior salário</div></div>
+            <div class="gestao-kpi"><div id="gSalarioMedio" class="valor">—</div><div class="rotulo">Salário médio</div></div>
+            <div class="gestao-kpi"><div id="gMassaSalarial" class="valor">—</div><div class="rotulo">Massa salarial</div></div>
+            <div class="gestao-kpi"><div id="gBrigadistas" class="valor">0</div><div class="rotulo">Brigadistas ativos</div></div>
+            <div class="gestao-kpi"><div id="gMonitores" class="valor">0</div><div class="rotulo">Monitores ativos</div></div>
+            <div class="gestao-kpi"><div id="gInfraCriticos" class="valor">0</div><div class="rotulo">Chamados críticos</div></div>
+          </div>
+
+          <div class="gestao-panel">
+            <h3>Visão gerencial integrada</h3>
+            <div class="gestao-planning">
+              <div class="item"><b>Férias</b><div id="gIndicadorFerias" class="gestao-small"></div></div>
+              <div class="item"><b>Banco de horas</b><div id="gIndicadorBanco" class="gestao-small"></div></div>
+              <div class="item"><b>Treinamentos</b><div id="gIndicadorTreinamento" class="gestao-small"></div></div>
+              <div class="item"><b>Infraestrutura</b><div id="gIndicadorInfra" class="gestao-small"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
 <section id="dashboard" class="view active">
       <div class="dashboard-grid">
         <div class="kpi"><div id="kpiColaboradores" class="value">0</div><div class="label">Colaboradores</div></div>
@@ -1046,13 +1186,17 @@ function gDadosColaboradores(){
 }
 function renderGestaoOperacional(){
   if(!isSupervisor())return;
+  if(!$("gTotal"))return;
   const dados=gDadosColaboradores();
   const ativos=dados.filter(x=>x.statusGestao==="Ativo");
   const ferias=dados.filter(x=>x.statusGestao==="Férias");
   const novos=dados.filter(x=>x.tempo<1);
   const tempoMedio=dados.length?dados.reduce((s,x)=>s+x.tempo,0)/dados.length:0;
   const bancoNegativo=dados.filter(x=>x.saldoMin!==null&&x.saldoMin<0).length;
-  const treinCrit=(state.treinamentos||[]).filter(t=>["vencer","vencido"].includes(statusTreinamento(t.validade).chave)).length;
+  const treinCrit=(state.treinamentos||[]).filter(t=>{
+    if(typeof statusTreinamento!=="function")return false;
+    return ["vencer","vencido"].includes(statusTreinamento(t.validade).chave);
+  }).length;
 
   $("gTotal").textContent=dados.length;
   $("gAtivos").textContent=ativos.length;
@@ -1133,7 +1277,10 @@ function renderGestaoIndicadores(dados){
   $("gMassaSalarial").textContent=salarios.length?gMoeda(salarios.reduce((a,b)=>a+b,0)):"—";
   $("gBrigadistas").textContent=dados.filter(c=>c.brigadista).length;
   $("gMonitores").textContent=dados.filter(c=>c.monitorEvasao).length;
-  const infraCrit=(state.chamadosInfra||[]).filter(c=>criticidadeInfra(c)==="Alta"&&!statusConcluidoInfra(c.status)).length;
+  const infraCrit=(state.chamadosInfra||[]).filter(c=>{
+    if(typeof criticidadeInfra!=="function"||typeof statusConcluidoInfra!=="function")return false;
+    return criticidadeInfra(c)==="Alta"&&!statusConcluidoInfra(c.status);
+  }).length;
   $("gInfraCriticos").textContent=infraCrit;
   $("gIndicadorFerias").textContent=`${(state.ferias||[]).filter(f=>["Programada","Aprovada"].includes(f.status)).length} registros programados`;
   $("gIndicadorBanco").textContent=`${dados.filter(c=>c.saldoMin!==null&&c.saldoMin<0).length} colaboradores negativos`;
