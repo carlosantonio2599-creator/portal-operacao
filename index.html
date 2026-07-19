@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Versão 4: novo controle de acesso por perfil -->
 <title>Portal Equipe E - Gestão Integrada</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -341,6 +342,25 @@ table thead th{
   #appArea{padding-left:0!important}
   .tabs{display:none!important}
   .faixa,.hero{margin-left:0!important;margin-right:0!important}
+}
+
+
+/* ===== Versão 4 — Controle visual de acesso ===== */
+.acesso-resumo{
+  margin-left:10px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.13);
+  color:#e7efff;
+  font-size:11px;
+  font-weight:700;
+}
+.tab.hidden,
+.view.hidden{
+  display:none!important;
+}
+@media(max-width:760px){
+  .acesso-resumo{display:none}
 }
 
 </style>
@@ -765,11 +785,52 @@ const state = {
 const $ = id => document.getElementById(id);
 const isSupervisor = () => state.profile?.perfil === "supervisor";
 const isGestor = () => ["supervisor","especialista"].includes(state.profile?.perfil);
-const isInfra = () => ["supervisor","infra"].includes(state.profile?.perfil);
+const isInfra = () => ["supervisor","especialista","infra"].includes(state.profile?.perfil);
+const isFeriasManager = () => ["supervisor","especialista"].includes(state.profile?.perfil);
+const perfilAtual = () => String(state.profile?.perfil||"").toLowerCase();
+
+const permissoesPorPerfil = {
+  supervisor: [
+    "dashboard","efetivo","pedido","aprovacao","ferias",
+    "banco","rotas","treinamentos","infra","colaboradores"
+  ],
+  especialista: [
+    "pedido","aprovacao","banco","rotas","ferias","infra"
+  ],
+  operador: [
+    "pedido","banco"
+  ],
+  infra: [
+    "infra"
+  ]
+};
+
+function viewsPermitidas(){
+  return permissoesPorPerfil[perfilAtual()] || [];
+}
+
+function primeiraViewPermitida(){
+  const preferencia = {
+    supervisor:"dashboard",
+    especialista:"pedido",
+    operador:"pedido",
+    infra:"infra"
+  };
+  const escolhida=preferencia[perfilAtual()];
+  return viewsPermitidas().includes(escolhida)
+    ? escolhida
+    : viewsPermitidas()[0];
+}
 const formatDate = iso => iso ? new Date(iso+"T00:00:00").toLocaleDateString("pt-BR") : "";
 const daysBetween = (a,b) => Math.floor((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/86400000)+1;
 
 function setView(id){
+  const permitidas=viewsPermitidas();
+  if(state.profile && !permitidas.includes(id)){
+    id=primeiraViewPermitida();
+  }
+  if(!id || !$(id))return;
+
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   $(id).classList.add("active");
@@ -777,21 +838,37 @@ function setView(id){
 }
 
 function applyPermissions(){
-  // Restaura todos os módulos antes de aplicar as permissões do usuário atual.
-  // Isso evita que os módulos continuem ocultos após sair do perfil Infra
-  // e entrar novamente como Supervisor na mesma aba do navegador.
-  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("hidden"));
+  const permitidas=viewsPermitidas();
 
-  document.querySelectorAll(".supervisor-only").forEach(el=>el.classList.toggle("hidden",!isSupervisor()));
-  $("formFerias").classList.toggle("hidden",!isSupervisor());
-  $("btnSalvarFerias").classList.toggle("hidden",!isSupervisor());
-  $("btnLimparFerias").classList.toggle("hidden",!isSupervisor());
-  $("formTreinamento").classList.toggle("hidden",!isGestor());
-  $("btnSalvarTreinamento").classList.toggle("hidden",!isGestor());
-  $("btnLimparTreinamento").classList.toggle("hidden",!isGestor());
-  document.querySelectorAll(".infra-access").forEach(el=>el.classList.toggle("hidden",!isInfra()));
+  // Mostra somente os módulos liberados para o perfil atual.
+  document.querySelectorAll(".tab[data-view]").forEach(tab=>{
+    tab.classList.toggle("hidden",!permitidas.includes(tab.dataset.view));
+  });
+
+  // Segurança adicional: esconde também as telas não autorizadas.
+  document.querySelectorAll(".view").forEach(view=>{
+    if(!permitidas.includes(view.id)){
+      view.classList.remove("active");
+    }
+  });
+
+  const podeGerirFerias=isFeriasManager();
+  $("formFerias")?.classList.toggle("hidden",!podeGerirFerias);
+  $("btnSalvarFerias")?.classList.toggle("hidden",!podeGerirFerias);
+  $("btnLimparFerias")?.classList.toggle("hidden",!podeGerirFerias);
+
+  // Treinamentos permanecem sob gestão do Supervisor.
+  $("formTreinamento")?.classList.toggle("hidden",!isSupervisor());
+  $("btnSalvarTreinamento")?.classList.toggle("hidden",!isSupervisor());
+  $("btnLimparTreinamento")?.classList.toggle("hidden",!isSupervisor());
+
+  // Supervisor, Especialista e perfil Infra podem atualizar chamados.
   $("infraImportBox")?.classList.toggle("hidden",!isInfra());
   $("btnNovoChamadoInfra")?.classList.toggle("hidden",!isInfra());
+
+  // Ações de aprovação de folgas somente para Supervisor e Especialista.
+  $("btnExcluirReprovadas")?.classList.toggle("hidden",!isGestor());
+  $("btnImprimirFolgas")?.classList.toggle("hidden",!isGestor());
 }
 
 function showLogin(message=""){
@@ -804,6 +881,13 @@ function showApp(){
   $("loginArea").classList.add("hidden");
   $("appArea").classList.remove("hidden");
   $("usuarioLogado").textContent=`${state.profile.nome || state.user.email} • ${state.profile.perfil}`;
+  const resumo={
+    supervisor:"Acesso completo",
+    especialista:"Folgas, Banco de Horas, Rotas, Férias e Infraestrutura",
+    operador:"Pedido de Folga e Banco de Horas",
+    infra:"Infraestrutura"
+  };
+  if($("acessoResumo"))$("acessoResumo").textContent=resumo[perfilAtual()]||"";
   applyPermissions();
 }
 
@@ -930,7 +1014,7 @@ function renderFerias(){
       <td data-label="Dias">${daysBetween(f.inicio,f.fim)}</td>
       <td data-label="Status">${statusBadge(f.status||"Programada")}</td>
       <td data-label="Ações" class="no-print">
-        ${isSupervisor()?`
+        ${isFeriasManager()?`
           <button class="btn-edit" data-action="edit-ferias" data-id="${f.id}">Editar</button>
           <button class="btn-red" data-action="delete-ferias" data-id="${f.id}">Excluir</button>`:""}
       </td>
@@ -1545,7 +1629,7 @@ $("btnImprimirFolgas").addEventListener("click",()=>{
 });
 
 $("btnExcluirReprovadas").addEventListener("click",async()=>{
-  if(!isSupervisor())return;
+  if(!isGestor())return;
   const rejected=state.folgas.filter(f=>f.status==="Reprovada");
   if(!rejected.length){alert("Não há solicitações reprovadas.");return;}
   if(!confirm(`Excluir ${rejected.length} solicitação(ões) reprovada(s)?`))return;
@@ -1558,11 +1642,13 @@ $("tbodyFolgas").addEventListener("click",async e=>{
   const id=btn.dataset.id;
   const item=state.folgas.find(f=>f.id===id);
   if(btn.dataset.action==="status-folga"){
+    if(!isGestor())return;
     await updateDoc(doc(db,"solicitacoes_folga",id),{
       status:btn.dataset.status,analisadoPor:state.user.uid,analisadoEm:serverTimestamp()
     });
   }
   if(btn.dataset.action==="edit-folga"&&item){
+    if(!isGestor())return;
     state.folgaEditId=id;
     $("editFolgaNome").value=item.nome;
     $("editFolgaData").value=item.data;
@@ -1572,7 +1658,7 @@ $("tbodyFolgas").addEventListener("click",async e=>{
 });
 
 $("btnSalvarEdicaoFolga").addEventListener("click",async()=>{
-  if(!state.folgaEditId)return;
+  if(!isGestor()||!state.folgaEditId)return;
   await updateDoc(doc(db,"solicitacoes_folga",state.folgaEditId),{
     nome:$("editFolgaNome").value,
     data:$("editFolgaData").value,
@@ -1587,7 +1673,7 @@ $("btnFecharModal").addEventListener("click",()=>$("modalFolga").classList.add("
 $("btnCancelarEdicaoFolga").addEventListener("click",()=>$("modalFolga").classList.add("hidden"));
 
 $("btnSalvarFerias").addEventListener("click",async()=>{
-  if(!isSupervisor())return;
+  if(!isFeriasManager())return;
   const nome=$("feriasNome").value.trim().toUpperCase();
   const inicio=$("feriasInicio").value;
   const fim=$("feriasFim").value;
@@ -1612,6 +1698,7 @@ $("tbodyFerias").addEventListener("click",async e=>{
   const id=btn.dataset.id;
   const item=state.ferias.find(f=>f.id===id);
   if(btn.dataset.action==="edit-ferias"&&item){
+    if(!isFeriasManager())return;
     state.feriasEditId=id;
     $("feriasNome").value=item.nome;
     $("feriasInicio").value=item.inicio;
@@ -1621,6 +1708,7 @@ $("tbodyFerias").addEventListener("click",async e=>{
     window.scrollTo({top:0,behavior:"smooth"});
   }
   if(btn.dataset.action==="delete-ferias"){
+    if(!isFeriasManager())return;
     if(confirm("Excluir este registro de férias?"))await deleteDoc(doc(db,"ferias",id));
   }
 });
@@ -1915,17 +2003,10 @@ onAuthStateChanged(auth,async user=>{
     state.user=user;
     state.profile=await loadProfile(user);
     showApp();
-    if(state.profile.perfil==="infra"){
-      document.querySelectorAll(".tab").forEach(t=>{
-        t.classList.toggle("hidden",t.dataset.view!=="infra");
-      });
-      setView("infra");
-    }else{
-      // Para Supervisor, Especialista e Operador, volta ao Dashboard
-      // e garante que os módulos permitidos estejam novamente visíveis.
-      applyPermissions();
-      setView("dashboard");
-    }
+    applyPermissions();
+    const inicial=primeiraViewPermitida();
+    if(!inicial)throw new Error("Este perfil não possui módulos liberados.");
+    setView(inicial);
     subscribeData();
   }catch(e){
     alert(e.message);
