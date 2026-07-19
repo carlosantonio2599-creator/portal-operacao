@@ -576,7 +576,10 @@ table thead th{
     <label>Senha</label>
     <input id="loginSenha" type="password" autocomplete="current-password">
     <button id="btnEntrar" class="btn-blue" style="width:100%;margin-top:14px">Entrar</button>
-    <p id="loginMsg" class="login-msg"></p>
+    <div style="text-align:center;margin-top:10px">
+<a href="#" id="linkRecuperarSenha" style="font-size:13px;color:#0b5ed7;text-decoration:none">Esqueceu sua senha?</a>
+</div>
+<p id="loginMsg" class="login-msg"></p>
   </div>
 </section>
 
@@ -2473,6 +2476,29 @@ onAuthStateChanged(auth,async user=>{
     </div>
   </div>
 </div>
+
+
+<script type="module">
+import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+window.addEventListener('DOMContentLoaded',()=>{
+ const auth=getAuth();
+ const link=document.getElementById('linkRecuperarSenha');
+ if(!link) return;
+ link.addEventListener('click', async (e)=>{
+   e.preventDefault();
+   const email=(document.getElementById('loginEmail')?.value||'').trim()||prompt('Informe seu e-mail corporativo:');
+   if(!email){ alert('Informe um e-mail válido.'); return; }
+   try{
+      await sendPasswordResetEmail(auth,email);
+      alert('Se o e-mail estiver cadastrado, um link para redefinição da senha foi enviado.');
+   }catch(err){
+      if(err.code==='auth/invalid-email') alert('E-mail inválido.');
+      else if(err.code==='auth/too-many-requests') alert('Muitas tentativas. Aguarde alguns minutos.');
+      else alert('Não foi possível processar a solicitação. Tente novamente.');
+   }
+ });
+});
+</script>
 
 </body>
 </html>
