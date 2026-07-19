@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Versão: Gestão Equipe E - cabeçalho alinhado + banco de horas compatível -->
 <title>Portal Equipe E - Gestão Integrada</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -26,202 +27,9 @@ label{display:block;font-size:12px;font-weight:800;color:#52606d;margin-bottom:5
 .hero:before{content:"";position:absolute;left:0;top:0;border-top:130px solid var(--laranja);border-right:34px solid transparent}
 .hero h1{margin:0;font-size:32px;text-transform:uppercase}
 .hero p{margin:7px 0 0;font-weight:700}
-.faixa{margin:20px auto 16px;max-width:1120px;background:var(--laranja);color:#fff;border-radius:14px;padding:13px 20px;text-align:center;font-size:20px;font-weight:900;text-transform:uppercase}
-.container{max-width:1120px;margin:auto;padding:0 18px 40px}
-.tabs{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
-.tab{background:#fff;color:var(--azul-escuro)}
-.tab.active{background:var(--azul-escuro);color:#fff}
-.card{background:#fff;border:1px solid var(--linha);border-radius:18px;padding:18px;box-shadow:0 3px 12px #0000000d}
-.view{display:none}.view.active{display:block}
-.section-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.section-head h2{margin:0;color:var(--azul-escuro)}
-.icon{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--laranja);color:var(--laranja);font-size:22px;font-weight:900}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.grid4{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.btn-blue{background:var(--azul-escuro);color:#fff}
-.btn-green{background:var(--verde);color:#fff}
-.btn-orange{background:var(--laranja);color:#fff}
-.btn-red{background:var(--vermelho);color:#fff}
-.btn-gray{background:#64748b;color:#fff}
-.btn-edit{background:#2563eb;color:#fff}
-.periodos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.periodo input{position:absolute;opacity:0}
-.periodo span{display:flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:var(--azul-escuro);font-weight:800}
-.periodo input:checked+span{background:var(--azul-escuro);color:white;border-color:var(--azul-escuro)}
-.filters{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
-table{width:100%;border-collapse:collapse;margin-top:14px}
-th{background:#dceaf6;color:#082f49;padding:11px 9px;text-align:left;font-size:13px}
-td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
-.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900}
-.aprovada,.concluída{background:#dcfce7;color:#166534}
-.pendente,.programada{background:#fef3c7;color:#92400e}
-.reprovada,.cancelada{background:#fee2e2;color:#991b1b}
-.resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.mini-card{background:#f8fbfe;border:1px solid var(--linha);border-radius:12px;padding:12px}
-.numero{font-size:25px;font-weight:900;color:var(--azul-escuro)}
-.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}
-.modal-box{width:min(620px,100%);background:#fff;border-radius:18px;padding:20px}
-.modal-head{display:flex;justify-content:space-between;align-items:center}
-.modal-head h3{margin:0;color:var(--azul-escuro)}
-@media(max-width:760px){
-  .hero{padding:20px}.hero:before{display:none}.hero h1{font-size:24px}
-  .grid,.grid4,.filters,.resumo{grid-template-columns:1fr}
-  table,thead,tbody,tr,th,td{display:block;width:100%}th{display:none}
-  tr{border:1px solid var(--linha);border-radius:12px;margin:10px 0;overflow:hidden}
-  td:before{content:attr(data-label);display:block;font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
-}
-
-.dashboard-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
-.kpi{background:white;border:1px solid var(--linha);border-radius:15px;padding:16px}
-.kpi .value{font-size:30px;font-weight:900;color:var(--azul-escuro)}
-.kpi .label{font-size:12px;color:var(--muted);font-weight:800}
-.dashboard-columns{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
-.import-box{background:#f8fbfe;border:1px dashed #9fb3c8;border-radius:14px;padding:16px}
-.banco-negativo{color:#991b1b;font-weight:900}.banco-positivo{color:#166534;font-weight:900}
-@media(max-width:900px){.dashboard-grid{grid-template-columns:repeat(2,1fr)}.dashboard-columns{grid-template-columns:1fr}}
-@media(max-width:520px){.dashboard-grid{grid-template-columns:1fr}}
-
-
-.status-vencido{color:#991b1b;font-weight:900}
-.status-vencer{color:#92400e;font-weight:900}
-.status-valido{color:#166534;font-weight:900}
-
-
-.rota-dia{margin-bottom:18px;border:1px solid var(--linha);border-radius:14px;overflow:hidden;background:#fff}
-.rota-cabecalho{background:#fff500;color:#111;padding:10px 14px;font-weight:900;text-align:center;text-transform:uppercase}
-.rota-veiculo{background:#d9e8f6;font-weight:900}
-.rota-vazio{padding:16px;color:var(--muted);text-align:center}
-.rota-filtros{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
-@media(max-width:760px){.rota-filtros{grid-template-columns:1fr}}
-
-
-.efetivo-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
-.efetivo-lista{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.efetivo-item{border:1px solid var(--linha);border-radius:12px;padding:12px;background:#fff}
-.efetivo-item strong{color:var(--azul-escuro)}
-.status-presente{border-left:5px solid var(--verde)}
-.status-folga{border-left:5px solid var(--laranja)}
-.status-ferias{border-left:5px solid #2563eb}
-.status-adm{border-left:5px solid #64748b}
-@media(max-width:900px){.efetivo-cards{grid-template-columns:repeat(2,1fr)}.efetivo-lista{grid-template-columns:1fr}}
-@media(max-width:520px){.efetivo-cards{grid-template-columns:1fr}}
-
-
-.semana-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.dia-semana{border:1px solid var(--linha);border-radius:14px;background:#fff;overflow:hidden}
-.dia-semana-cab{background:#dceaf6;color:#082f49;padding:11px 12px;font-weight:900}
-.dia-semana-corpo{padding:10px}
-.dia-semana-item{padding:8px 10px;border-bottom:1px solid var(--linha)}
-.dia-semana-item:last-child{border-bottom:0}
-@media(max-width:900px){.semana-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.semana-grid{grid-template-columns:1fr}}
-
-
-.infra-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
-.infra-toolbar{display:grid;grid-template-columns:1.4fr repeat(3,1fr) auto;gap:10px;align-items:end}
-.infra-import{background:#f8fbfe;border:1px dashed #9fb3c8;border-radius:14px;padding:15px;margin-bottom:14px}
-.infra-table-wrap{overflow:auto;max-height:650px;border:1px solid var(--linha);border-radius:14px}
-.infra-critical{color:#991b1b;font-weight:900}
-.infra-warning{color:#92400e;font-weight:900}
-.infra-ok{color:#166534;font-weight:900}
-@media(max-width:980px){.infra-kpis{grid-template-columns:repeat(2,1fr)}.infra-toolbar{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.infra-kpis,.infra-toolbar{grid-template-columns:1fr}}
-
-
-#infraPrintHeader{display:none}
-
-/* Modal compacto do novo chamado */
-#modalNovoInfra .modal-box{
-  width:min(760px,96vw);
-  max-height:88vh;
-  padding:16px;
-  border-radius:16px;
-  overflow:auto;
-}
-#modalNovoInfra .modal-head h3{font-size:19px}
-#modalNovoInfra .grid{
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-#modalNovoInfra label{
-  font-size:11px;
-  margin-bottom:4px;
-}
-#modalNovoInfra input,
-#modalNovoInfra select,
-#modalNovoInfra textarea{
-  padding:9px 10px;
-  border-radius:8px;
-}
-#modalNovoInfra textarea{
-  min-height:58px;
-  resize:vertical;
-}
-#modalNovoInfra .actions{margin-top:12px}
-#modalNovoInfra button{padding:9px 12px}
-@media(max-width:760px){
-  #modalNovoInfra .grid{grid-template-columns:1fr}
-  #modalNovoInfra .modal-box{
-    width:96vw;
-    max-height:92vh;
-  }
-}
-
-@media print{
-  #infra.active #infraPrintHeader{display:block!important}
-  #infra.active .infra-kpis{grid-template-columns:repeat(5,1fr)!important}
-  #infra.active .infra-table-wrap{max-height:none!important;overflow:visible!important;border:0!important}
-  #infra.active table{table-layout:fixed!important}
-  #infra.active th,#infra.active td{font-size:8.5px!important;padding:5px!important}
-  #infra.active th:last-child,#infra.active td:last-child{display:none!important}
-}
-
-@media print{
-  @page{size:A4 landscape;margin:9mm}
-  .no-print,#pedido,.tabs,.topbar{display:none!important}
-  body{background:#fff}.container{max-width:none;padding:0}
-  .card{border:0;box-shadow:none;padding:0}
-  .section-head{display:none}
-  table{display:table!important;table-layout:fixed!important}
-  thead{display:table-header-group!important}tbody{display:table-row-group!important}tr{display:table-row!important}
-  th,td{display:table-cell!important;font-size:10px!important;padding:7px 6px!important}
-  td:before{display:none!important}
-  th:last-child,td:last-child{display:none!important}
-}
-
-/* ===== Layout Portal Operação Diamante ===== */
-:root{
-  --portal-navy:#032a56;
-  --portal-navy-2:#001c3f;
-  --portal-blue:#064fba;
-  --portal-orange:#ff7625;
-  --portal-bg:#f4f7fb;
-}
-body{background:var(--portal-bg)}
-#appArea{
-  min-height:100vh;
-  padding-left:260px;
-}
-.topbar{
-  height:58px;
-  margin:0;
-  padding:0 24px;
-  background:var(--portal-navy-2);
-  color:#fff;
-  border-bottom:1px solid rgba(255,255,255,.12);
-  position:sticky;
-  top:0;
-  z-index:40;
-}
-.topbar #usuarioLogado{font-weight:700}
-.topbar #btnSair{
-  background:#fff;
-  color:var(--portal-navy);
-  border:1px solid #d6deea;
-}
 .faixa{
-  margin:16px 24px 10px;
+  margin:8px 24px 16px;
+  width:calc(100% - 48px);
   border-radius:13px;
   padding:15px 20px;
   background:linear-gradient(90deg,#ff7b25,#ff6c1a);
@@ -234,16 +42,26 @@ body{background:var(--portal-bg)}
   box-shadow:0 7px 18px rgba(255,118,37,.18);
 }
 .hero{
-  margin:0 24px 16px;
+  margin:16px 24px 0;
+  width:calc(100% - 48px);
   border-radius:14px;
   min-height:105px;
   padding:25px 30px;
-  background:linear-gradient(110deg,#072fa9,#1717dc);
-  border-left:15px solid var(--portal-orange);
+  background:linear-gradient(110deg,#052c88,#073dd0);
+  border:0;
   color:#fff;
   display:flex;
   align-items:center;
   box-shadow:0 8px 22px rgba(15,38,100,.16);
+  overflow:hidden;
+  position:relative;
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,rgba(255,255,255,.03),transparent 45%);
+  pointer-events:none;
 }
 .hero h1{
   margin:0;
@@ -437,6 +255,22 @@ table thead th{
   .gestao-subview.active{display:block!important}
 }
 
+
+/* Ajuste de alinhamento do cabeçalho aprovado */
+@media(max-width:700px){
+  .hero,.faixa{
+    margin-left:12px;
+    margin-right:12px;
+    width:calc(100% - 24px);
+  }
+  .hero{
+    min-height:82px;
+    padding:20px;
+  }
+  .hero h1{font-size:25px}
+  .faixa{font-size:20px}
+}
+
 </style>
 </head>
 <body>
@@ -462,10 +296,10 @@ table thead th{
   </div>
 
   <header class="hero">
-    <h1>Gestão Equipe E</h1>
+    <h1>GESTÃO EQUIPE E</h1>
   </header>
 
-  <div class="faixa">Operação Diamante</div>
+  <div class="faixa">OPERAÇÃO DIAMANTE</div>
 
   <main class="container">
     <nav class="tabs no-print">
