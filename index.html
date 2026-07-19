@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Versão 4: novo controle de acesso por perfil -->
+<!-- Versão 4.1: cabeçalho corporativo -->
 <title>Portal Equipe E - Gestão Integrada</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -376,6 +377,159 @@ table thead th{
 }
 .hero h1{
   color:#ffffff !important;
+}
+
+
+/* ===== V4.1 — Cabeçalho corporativo ===== */
+:root{
+  --azul-diamante:#0b3f91;
+  --azul-diamante-escuro:#082f6d;
+  --laranja-diamante:#f47721;
+  --cinza-fundo:#f3f6fa;
+}
+
+/* Barra superior */
+.topbar{
+  background:linear-gradient(90deg,var(--azul-diamante-escuro),var(--azul-diamante)) !important;
+  border-bottom:3px solid var(--laranja-diamante) !important;
+  box-shadow:0 4px 12px rgba(8,47,109,.18) !important;
+}
+
+/* Cabeçalho principal */
+.hero{
+  position:relative !important;
+  min-height:94px !important;
+  padding:20px 28px !important;
+  background:var(--azul-diamante) !important;
+  background-image:none !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  border-radius:12px 12px 0 0 !important;
+  box-shadow:0 8px 20px rgba(11,63,145,.15) !important;
+  overflow:hidden !important;
+}
+
+.hero::before,
+.hero::after{
+  display:none !important;
+  content:none !important;
+}
+
+.hero h1{
+  margin:0 !important;
+  color:#fff !important;
+  font-size:30px !important;
+  font-weight:900 !important;
+  letter-spacing:.4px !important;
+  text-align:left !important;
+}
+
+.hero h1::after{
+  content:"Portal Integrado da Supervisão de Operação";
+  display:block;
+  margin-top:7px;
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:.1px;
+  color:rgba(255,255,255,.82);
+  text-transform:none;
+}
+
+/* Faixa laranja */
+.faixa{
+  min-height:48px !important;
+  margin-top:0 !important;
+  background:var(--laranja-diamante) !important;
+  border-radius:0 0 12px 12px !important;
+  box-shadow:0 8px 18px rgba(244,119,33,.14) !important;
+  font-size:20px !important;
+  letter-spacing:1.2px !important;
+  text-align:left !important;
+  justify-content:flex-start !important;
+  padding-left:28px !important;
+}
+
+/* Identificação visual no canto direito */
+.hero-corporativo{
+  position:absolute;
+  top:50%;
+  right:26px;
+  transform:translateY(-50%);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+}
+
+.hero-corporativo .marca{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  background:var(--laranja-diamante);
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-size:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,.18);
+}
+
+.hero-corporativo .texto{
+  text-align:right;
+  line-height:1.1;
+}
+
+.hero-corporativo .texto strong{
+  display:block;
+  font-size:14px;
+}
+
+.hero-corporativo .texto span{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  color:rgba(255,255,255,.78);
+}
+
+/* Cards principais */
+.card{
+  border-radius:12px !important;
+}
+
+.kpi,
+.gestao-kpi{
+  border-top:4px solid var(--laranja-diamante) !important;
+}
+
+/* Menu lateral */
+.tabs{
+  background:linear-gradient(180deg,var(--azul-diamante),var(--azul-diamante-escuro)) !important;
+}
+
+.tab.active{
+  background:linear-gradient(90deg,#1555c4,#0e49aa) !important;
+  box-shadow:inset 4px 0 0 var(--laranja-diamante) !important;
+}
+
+/* Mobile */
+@media(max-width:760px){
+  .hero{
+    min-height:82px !important;
+    padding:17px 18px !important;
+  }
+  .hero h1{
+    font-size:23px !important;
+    padding-right:0 !important;
+  }
+  .hero h1::after{
+    font-size:11px;
+  }
+  .hero-corporativo{
+    display:none;
+  }
+  .faixa{
+    min-height:42px !important;
+    font-size:17px !important;
+    padding-left:18px !important;
+  }
 }
 
 </style>
