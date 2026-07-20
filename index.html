@@ -7,7 +7,8 @@
 <!-- Versão 4.1: cabeçalho corporativo -->
 <!-- Versão 4.2: importação ampliada do Banco de Horas -->
 <!-- Versão 4.3.2: rota em laranja, folgas aprovadas para operador e remoção do efetivo semanal -->
-<title>Gestão Equipe E - V4.3.3</title>
+<title>Gestão Equipe E - V4.3.4</title>
+<!-- Versão 4.3.4: geração de rota diária ou por ciclo de 6 dias -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
@@ -96,7 +97,7 @@ td{padding:11px 9px;border-bottom:1px solid var(--linha);font-size:13px}
 .rota-cabecalho{background:#f47721;color:#fff;padding:10px 14px;font-weight:900;text-align:center;text-transform:uppercase}
 .rota-veiculo{background:#d9e8f6;font-weight:900}
 .rota-vazio{padding:16px;color:var(--muted);text-align:center}
-.rota-filtros{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+.rota-filtros{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end}
 @media(max-width:760px){.rota-filtros{grid-template-columns:1fr}}
 
 
@@ -855,21 +856,36 @@ color:#fff!important;
 
         <div class="rota-filtros no-print">
           <div>
-            <label>Primeiro dia do ciclo</label>
-            <input id="rotaDataInicial" type="date">
+            <label>Tipo de geração</label>
+            <select id="rotaTipoGeracao">
+              <option value="diaria">Rota diária</option>
+              <option value="ciclo">Ciclo de 6 dias</option>
+            </select>
           </div>
           <div>
-            <label>Sequência da Equipe E</label>
-            <input value="Manhã, Manhã, Tarde, Tarde, Noite, Noite" disabled>
+            <label id="rotaLabelData">Data da rota</label>
+            <input id="rotaDataInicial" type="date">
+          </div>
+          <div id="rotaCampoTurno">
+            <label>Turno</label>
+            <select id="rotaTurno">
+              <option value="Manhã">Manhã</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noite">Noite</option>
+            </select>
           </div>
           <div class="actions" style="margin:0">
             <button id="btnGerarRota" class="btn-blue">Gerar rota</button>
-            <button id="btnImprimirRota" class="btn-orange btn-pdf-rota" data-action="pdf-rota">📄 PDF da Rota</button>
+            <button id="btnImprimirRota" class="btn-orange btn-pdf-rota" data-action="pdf-rota">PDF da Rota</button>
           </div>
         </div>
 
+        <div id="rotaInfoCiclo" class="hidden" style="margin-top:10px;padding:9px 11px;border-radius:10px;background:#f8fbfe;border:1px solid var(--linha);color:var(--muted);font-size:12px">
+          Sequência do ciclo: Manhã, Manhã, Tarde, Tarde, Noite e Noite.
+        </div>
+
         <div style="margin-top:12px;padding:10px;border-radius:10px;background:#eef6ff;color:#073b63;font-size:13px">
-          Serão exibidos somente os colaboradores ativos do regime de turno que irão à usina. Colaboradores ADM, folgas aprovadas e férias serão retirados automaticamente.
+          Selecione a geração diária ou o ciclo de 6 dias. Na rota diária, escolha a data e o turno. Colaboradores ADM, folgas aprovadas e férias serão retirados automaticamente.
         </div>
 
         <div id="resultadoRotas" style="margin-top:16px"></div>
@@ -2320,65 +2336,87 @@ function agruparPorVeiculo(lista){
   return grupos;
 }
 
-function gerarRotasSeisDias(){
-  const inicio=$("rotaDataInicial").value;
-  if(!inicio){
-    alert("Selecione o primeiro dia do ciclo.");
-    return;
-  }
+function montarBlocoRota(data,periodo){
+  const colaboradores=colaboradoresQueIrao(data,periodo);
+  const grupos=agruparPorVeiculo(colaboradores);
 
-  const periodos=["Manhã","Manhã","Tarde","Tarde","Noite","Noite"];
-  let htmlRota="";
+  let html=`<div class="rota-dia">
+    <div class="rota-cabecalho">ESCALA DE TURNO - OPERAÇÃO ${formatDate(data)} - TURNO ${periodo.toUpperCase()}</div>`;
 
-  for(let i=0;i<6;i++){
-    const data=isoAddDays(inicio,i);
-    const periodo=periodos[i];
-    const colaboradores=colaboradoresQueIrao(data,periodo);
-    const grupos=agruparPorVeiculo(colaboradores);
+  if(!colaboradores.length){
+    html+=`<div class="rota-vazio">Nenhum colaborador programado para esta rota.</div>`;
+  }else{
+    html+=`<table style="margin:0">
+      <thead><tr><th>Veículo</th><th>Motorista</th><th>Equipe</th><th>Horário</th><th>Colaborador</th><th>Contato</th><th>Função</th><th>Endereço</th></tr></thead>
+      <tbody>`;
 
-    htmlRota+=`<div class="rota-dia">
-      <div class="rota-cabecalho">ESCALA DE TURNO - OPERAÇÃO ${formatDate(data)} - TURNO ${periodo.toUpperCase()}</div>`;
-
-    if(!colaboradores.length){
-      htmlRota+=`<div class="rota-vazio">Nenhum colaborador programado para esta rota.</div>`;
-    }else{
-      htmlRota+=`<table style="margin:0">
-        <thead><tr><th>Veículo</th><th>Motorista</th><th>Equipe</th><th>Horário</th><th>Colaborador</th><th>Contato</th><th>Função</th><th>Endereço</th></tr></thead>
-        <tbody>`;
-
-      for(const [veiculo,pessoas] of Object.entries(grupos)){
-        pessoas.sort((a,b)=>String(a.horario||"").localeCompare(String(b.horario||"")));
-        pessoas.forEach((c,idx)=>{
-          htmlRota+=`<tr>
-            <td data-label="Veículo" class="${idx===0?"rota-veiculo":""}">${idx===0?veiculo:""}</td>
-            <td data-label="Motorista">${idx===0?(c.motorista||""):""}</td>
-            <td data-label="Equipe">E</td>
-            <td data-label="Horário">${c.horario||""}</td>
-            <td data-label="Colaborador">${c.nome||""}</td>
-            <td data-label="Contato">${c.contato||""}</td>
-            <td data-label="Função">${c.funcao||""}</td>
-            <td data-label="Endereço">${c.endereco||""}</td>
-          </tr>`;
-        });
-      }
-
-      htmlRota+=`</tbody></table>`;
+    for(const [veiculo,pessoas] of Object.entries(grupos)){
+      pessoas.sort((a,b)=>String(a.horario||"").localeCompare(String(b.horario||"")));
+      pessoas.forEach((c,idx)=>{
+        html+=`<tr>
+          <td data-label="Veículo" class="${idx===0?"rota-veiculo":""}">${idx===0?veiculo:""}</td>
+          <td data-label="Motorista">${idx===0?(c.motorista||""):""}</td>
+          <td data-label="Equipe">E</td>
+          <td data-label="Horário">${c.horario||""}</td>
+          <td data-label="Colaborador">${c.nome||""}</td>
+          <td data-label="Contato">${c.contato||""}</td>
+          <td data-label="Função">${c.funcao||""}</td>
+          <td data-label="Endereço">${c.endereco||""}</td>
+        </tr>`;
+      });
     }
 
-    htmlRota+=`</div>`;
+    html+=`</tbody></table>`;
+  }
+
+  html+=`</div>`;
+  return html;
+}
+
+function atualizarCamposRota(){
+  const diaria=$("rotaTipoGeracao").value==="diaria";
+  $("rotaCampoTurno").classList.toggle("hidden",!diaria);
+  $("rotaInfoCiclo").classList.toggle("hidden",diaria);
+  $("rotaLabelData").textContent=diaria?"Data da rota":"Primeiro dia do ciclo";
+  $("resultadoRotas").innerHTML="";
+}
+
+function gerarRota(){
+  const inicio=$("rotaDataInicial").value;
+  if(!inicio){
+    alert("Selecione a data da rota.");
+    return false;
+  }
+
+  const tipo=$("rotaTipoGeracao").value;
+  let htmlRota="";
+
+  if(tipo==="diaria"){
+    const periodo=$("rotaTurno").value;
+    htmlRota=montarBlocoRota(inicio,periodo);
+  }else{
+    const periodos=["Manhã","Manhã","Tarde","Tarde","Noite","Noite"];
+    for(let i=0;i<6;i++){
+      htmlRota+=montarBlocoRota(isoAddDays(inicio,i),periodos[i]);
+    }
   }
 
   $("resultadoRotas").innerHTML=htmlRota;
+  return true;
 }
 
-$("btnGerarRota").addEventListener("click",gerarRotasSeisDias);
+$("rotaTipoGeracao").addEventListener("change",atualizarCamposRota);
+$("btnGerarRota").addEventListener("click",gerarRota);
 $("btnImprimirRota").addEventListener("click",()=>{
-  if(!$("resultadoRotas").innerHTML.trim()){
-    gerarRotasSeisDias();
+  if(!$("resultadoRotas").innerHTML.trim() && !gerarRota()){
+    return;
   }
   setView("rotas");
   window.print();
 });
+
+$("rotaDataInicial").value=new Date().toISOString().slice(0,10);
+atualizarCamposRota();
 
 
 
