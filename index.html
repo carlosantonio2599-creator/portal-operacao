@@ -7,7 +7,7 @@
 <!-- Versão 4.1: cabeçalho corporativo -->
 <!-- Versão 4.2: importação ampliada do Banco de Horas -->
 <!-- Versão 4.3.2: rota em laranja, folgas aprovadas para operador e remoção do efetivo semanal -->
-<title>Gestão Equipe E - V4.3.2</title>
+<title>Gestão Equipe E - V4.3.3</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
@@ -634,6 +634,9 @@ color:#fff!important;
     <label>Senha</label>
     <input id="loginSenha" type="password" autocomplete="current-password">
     <button id="btnEntrar" class="btn-blue" style="width:100%;margin-top:14px">Entrar</button>
+    <button id="btnResetSenha" type="button" style="width:100%;margin-top:8px;background:transparent;color:var(--azul-escuro);padding:8px">
+      Esqueceu sua senha?
+    </button>
     <p id="loginMsg" class="login-msg"></p>
   </div>
 </section>
@@ -971,7 +974,7 @@ color:#fff!important;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc,
   onSnapshot, serverTimestamp, query, orderBy
@@ -1992,11 +1995,50 @@ function clearCollaboratorForm(){
 }
 
 $("btnEntrar").addEventListener("click",async()=>{
+  $("loginMsg").style.color="var(--vermelho)";
   $("loginMsg").textContent="";
   try{
     await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginSenha").value);
   }catch{
     $("loginMsg").textContent="Falha no acesso. Verifique e-mail e senha.";
+  }
+});
+
+$("btnResetSenha").addEventListener("click",async()=>{
+  const email=$("loginEmail").value.trim();
+  $("loginMsg").textContent="";
+
+  if(!email){
+    $("loginMsg").style.color="var(--vermelho)";
+    $("loginMsg").textContent="Informe seu e-mail para receber o link de redefinição.";
+    $("loginEmail").focus();
+    return;
+  }
+
+  const botao=$("btnResetSenha");
+  const textoOriginal=botao.textContent;
+  botao.disabled=true;
+  botao.textContent="Enviando link...";
+
+  try{
+    await sendPasswordResetEmail(auth,email);
+    $("loginMsg").style.color="#166534";
+    $("loginMsg").textContent="Link de redefinição enviado. Verifique sua caixa de entrada e a pasta de spam.";
+  }catch(error){
+    console.error("Falha ao redefinir senha:",error);
+    const mensagens={
+      "auth/invalid-email":"O e-mail informado é inválido.",
+      "auth/user-not-found":"Não foi localizada uma conta para este e-mail.",
+      "auth/too-many-requests":"Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+      "auth/network-request-failed":"Falha de conexão. Verifique sua internet e tente novamente.",
+      "auth/operation-not-allowed":"A recuperação por e-mail não está habilitada no Firebase Authentication.",
+      "auth/unauthorized-domain":"O domínio desta aplicação não está autorizado no Firebase Authentication."
+    };
+    $("loginMsg").style.color="var(--vermelho)";
+    $("loginMsg").textContent=mensagens[error.code]||`Não foi possível enviar o link de redefinição (${error.code||"erro desconhecido"}).`;
+  }finally{
+    botao.disabled=false;
+    botao.textContent=textoOriginal;
   }
 });
 
@@ -2406,33 +2448,5 @@ onAuthStateChanged(auth,async user=>{
 </div>
 
 
-<script type="module">
-import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-window.portalResetSenha=async function(){
- const email=(document.querySelector('input[type=email]')?.value||prompt('Informe seu e-mail corporativo:')||'').trim();
- if(!email){alert('Informe um e-mail.');return;}
- try{
-   await sendPasswordResetEmail(getAuth(),email);
-   alert('Se existir uma conta para este e-mail, um link de recuperação foi enviado.');
- }catch(e){
-   const map={
-    'auth/invalid-email':'E-mail inválido.',
-    'auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos.'
-   };
-   alert(map[e.code]||'Não foi possível enviar o e-mail.');
- }
-}
-document.addEventListener('DOMContentLoaded',()=>{
- const btn=document.querySelector('button[type=submit],button');
- if(btn){
-   const a=document.createElement('a');
-   a.href='#';
-   a.textContent='Esqueceu sua senha?';
-   a.style.display='block';a.style.marginTop='10px';a.style.textAlign='center';
-   a.onclick=(ev)=>{ev.preventDefault();portalResetSenha();};
-   btn.parentElement.appendChild(a);
- }
-});
-</script>
 </body>
 </html>
