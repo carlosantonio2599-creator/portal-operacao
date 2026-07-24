@@ -7,7 +7,7 @@
 <!-- Versão 4.1: cabeçalho corporativo -->
 <!-- Versão 4.2: importação ampliada do Banco de Horas -->
 <!-- Versão 4.3.2: rota em laranja, folgas aprovadas para operador e remoção do efetivo semanal -->
-<title>Gestão Equipe E - V4.3.5</title>
+<title>Gestão Equipe E - V4.5</title>
 <!-- Versão 4.3.5: remoção dos ícones do menu lateral -->
 <!-- Versão 4.3.4: geração de rota diária ou por ciclo de 6 dias -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -614,6 +614,13 @@ table thead th{
   }
 }
 
+
+
+/* V4.5 — Segurança visual complementar: Operador nunca visualiza Banco de Horas */
+body[data-perfil="operador"] .tab[data-view="banco"],
+body[data-perfil="operador"] #banco{
+  display:none!important;
+}
 </style>
 
 <style>
@@ -663,7 +670,7 @@ color:#fff!important;
       <button class="tab" data-view="rotas">Rota</button>
       <button class="tab" data-view="treinamentos">Treinamentos</button>
       <button class="tab infra-access" data-view="infra">Infraestrutura</button>
-      <button class="tab supervisor-only" data-view="colaboradores">Colaboradores</button>
+      <button class="tab" data-view="colaboradores">Colaboradores</button>
     </nav>
 
 
@@ -830,13 +837,23 @@ color:#fff!important;
           <button id="btnImprimirTreinamentos" class="btn-orange">Imprimir</button>
         </div>
 
+        <div id="importTreinamentosBox" class="import-box no-print" style="margin-top:14px">
+          <label>Importar planilha de treinamentos (XLSX, XLS ou CSV)</label>
+          <input id="arquivoTreinamentos" type="file" accept=".xlsx,.xls,.csv">
+          <p style="margin:8px 0 0;color:var(--muted);font-size:12px">
+            Colunas reconhecidas: Colaborador/Nome, Treinamento/Curso, Data de realização e Validade/Vencimento.
+            Somente colaboradores ativos cadastrados na Equipe E serão importados.
+          </p>
+          <div id="statusImportacaoTreinamentos" class="status-importacao-banco hidden"></div>
+        </div>
+
         <div class="filters no-print" style="margin-top:14px">
           <div><label>Pesquisar</label><input id="pesquisaTreinamento" placeholder="Nome ou treinamento"></div>
           <div><label>Status</label>
             <select id="filtroTreinamento">
               <option value="">Todos</option>
               <option value="valido">Válidos</option>
-              <option value="vencer">A vencer em até 30 dias</option>
+              <option value="vencer">A vencer em até 90 dias</option>
               <option value="vencido">Vencidos</option>
             </select>
           </div>
@@ -1029,11 +1046,11 @@ const state = {
 };
 
 const $ = id => document.getElementById(id);
-const isSupervisor = () => state.profile?.perfil === "supervisor";
-const isGestor = () => ["supervisor","especialista"].includes(state.profile?.perfil);
-const isInfra = () => ["supervisor","especialista","infra"].includes(state.profile?.perfil);
-const isFeriasManager = () => ["supervisor","especialista"].includes(state.profile?.perfil);
-const perfilAtual = () => String(state.profile?.perfil||"").toLowerCase();
+const perfilAtual = () => String(state.profile?.perfil||"").trim().toLowerCase();
+const isSupervisor = () => perfilAtual() === "supervisor";
+const isGestor = () => ["supervisor","especialista"].includes(perfilAtual());
+const isInfra = () => ["supervisor","especialista","infra"].includes(perfilAtual());
+const isFeriasManager = () => isGestor();
 
 const permissoesPorPerfil = {
   supervisor: [
@@ -1041,13 +1058,14 @@ const permissoesPorPerfil = {
     "banco","rotas","treinamentos","infra","colaboradores"
   ],
   especialista: [
-    "pedido","aprovacao","banco","rotas","ferias","infra"
+    "dashboard","pedido","aprovacao","ferias",
+    "banco","rotas","treinamentos","infra","colaboradores"
   ],
   operador: [
-    "pedido","aprovacao","banco"
+    "dashboard","pedido","aprovacao","ferias","rotas","treinamentos"
   ],
   infra: [
-    "infra"
+    "dashboard","infra"
   ]
 };
 
@@ -1085,6 +1103,7 @@ function setView(id){
 
 function applyPermissions(){
   const permitidas=viewsPermitidas();
+  document.body.dataset.perfil=perfilAtual();
 
   // Mostra somente os módulos liberados para o perfil atual.
   document.querySelectorAll(".tab[data-view]").forEach(tab=>{
@@ -1103,10 +1122,11 @@ function applyPermissions(){
   $("btnSalvarFerias")?.classList.toggle("hidden",!podeGerirFerias);
   $("btnLimparFerias")?.classList.toggle("hidden",!podeGerirFerias);
 
-  // Treinamentos permanecem sob gestão do Supervisor.
-  $("formTreinamento")?.classList.toggle("hidden",!isSupervisor());
-  $("btnSalvarTreinamento")?.classList.toggle("hidden",!isSupervisor());
-  $("btnLimparTreinamento")?.classList.toggle("hidden",!isSupervisor());
+  // Supervisor e Especialista podem cadastrar e editar treinamentos.
+  $("formTreinamento")?.classList.toggle("hidden",!isGestor());
+  $("btnSalvarTreinamento")?.classList.toggle("hidden",!isGestor());
+  $("btnLimparTreinamento")?.classList.toggle("hidden",!isGestor());
+  $("importTreinamentosBox")?.classList.toggle("hidden",!isGestor());
 
   // Supervisor, Especialista e perfil Infra podem atualizar chamados.
   $("infraImportBox")?.classList.toggle("hidden",!isInfra());
@@ -1137,8 +1157,8 @@ function showApp(){
   $("usuarioLogado").textContent=`${state.profile.nome || state.user.email} • ${state.profile.perfil}`;
   const resumo={
     supervisor:"Acesso completo",
-    especialista:"Folgas, Banco de Horas, Rotas, Férias e Infraestrutura",
-    operador:"Pedido de Folga, Folgas Aprovadas e Banco de Horas",
+    especialista:"Acesso de gestão a folgas, férias, banco de horas, treinamentos, infraestrutura e colaboradores",
+    operador:"Dashboard, Pedido de Folga, Folgas Aprovadas, Férias, Rotas e Treinamentos",
     infra:"Infraestrutura"
   };
   if($("acessoResumo"))$("acessoResumo").textContent=resumo[perfilAtual()]||"";
@@ -1236,6 +1256,9 @@ function statusBadge(status){
 }
 
 function renderFolgas(list=state.folgas){
+  const hojeIso=new Date().toISOString().slice(0,10);
+  // Folgas aprovadas cuja data já passou deixam de aparecer na fila de aprovação.
+  list=list.filter(f=>!(f.status==="Aprovada" && f.data && f.data<hojeIso));
   if(perfilAtual()==="operador"){
     list=list.filter(f=>f.status==="Aprovada");
   }
@@ -1286,8 +1309,8 @@ function renderCollaborators(){
       <td data-label="Veículo">${c.veiculo||""}</td>
       <td data-label="Horário">${c.horario||""}</td>
       <td data-label="Ações" class="no-print">
-        <button class="btn-edit" data-action="edit-colaborador" data-id="${c.id}">Editar</button>
-        <button class="btn-red" data-action="delete-colaborador" data-id="${c.id}">Excluir</button>
+        ${isGestor()?`<button class="btn-edit" data-action="edit-colaborador" data-id="${c.id}">Editar</button>`:""}
+        ${isSupervisor()?`<button class="btn-red" data-action="delete-colaborador" data-id="${c.id}">Excluir</button>`:""}
       </td>
     </tr>`).join("");
 }
@@ -1314,7 +1337,7 @@ function saldoFormatado(valor){
 
 
 const HORAS_POR_FOLGA_MINUTOS = 7 * 60;
-const LIMITE_NEGATIVO_MINUTOS = -7 * 60;
+const LIMITE_NEGATIVO_MINUTOS = -20 * 60;
 
 function normalizarNome(valor){
   return String(valor??"")
@@ -1658,7 +1681,7 @@ function statusTreinamento(validade){
   const venc=new Date(validade+"T00:00:00");
   const dias=Math.ceil((venc-hoje)/86400000);
   if(dias<0)return {chave:"vencido",texto:"Vencido"};
-  if(dias<=30)return {chave:"vencer",texto:`A vencer (${dias}d)`};
+  if(dias<=90)return {chave:"vencer",texto:`A vencer (${dias}d)`};
   return {chave:"valido",texto:"Válido"};
 }
 
@@ -1696,6 +1719,178 @@ function valorLinha(row, nomes){
   }
   return "";
 }
+
+
+$("btnSalvarTreinamento")?.addEventListener("click",async()=>{
+  if(!isGestor())return;
+
+  const nome=$("treinamentoNome").value.trim();
+  const titulo=$("treinamentoTitulo").value.trim();
+  const data=$("treinamentoData").value;
+  const validade=$("treinamentoValidade").value;
+
+  if(!nome||!titulo||!data){
+    alert("Informe colaborador, treinamento e data de realização.");
+    return;
+  }
+  if(validade && validade<data){
+    alert("A validade não pode ser anterior à data de realização.");
+    return;
+  }
+
+  const colaborador=state.colaboradores.find(c=>
+    c.ativo!==false && normalizarNome(c.nome)===normalizarNome(nome)
+  );
+  if(!colaborador){
+    alert("Colaborador não encontrado entre os colaboradores ativos da Equipe E.");
+    return;
+  }
+
+  const payload={
+    colaboradorId:colaborador.id,
+    nome:colaborador.nome,
+    titulo,
+    data,
+    validade,
+    equipe:"E",
+    alteradoPor:state.user.uid,
+    alteradoEm:serverTimestamp()
+  };
+
+  if(state.treinamentoEditId){
+    await updateDoc(doc(db,"treinamentos",state.treinamentoEditId),payload);
+    alert("Treinamento atualizado com sucesso.");
+  }else{
+    await addDoc(collection(db,"treinamentos"),{
+      ...payload,
+      criadoPor:state.user.uid,
+      criadoEm:serverTimestamp()
+    });
+    alert("Treinamento cadastrado com sucesso.");
+  }
+  clearTrainingForm();
+});
+
+$("btnLimparTreinamento")?.addEventListener("click",clearTrainingForm);
+$("btnImprimirTreinamentos")?.addEventListener("click",()=>{setView("treinamentos");window.print();});
+$("btnPesquisarTreinamentos")?.addEventListener("click",()=>{
+  const termo=normalizarNome($("pesquisaTreinamento").value);
+  const filtro=$("filtroTreinamento").value;
+  renderTreinamentos(state.treinamentos.filter(t=>{
+    const texto=normalizarNome(`${t.nome||""} ${t.titulo||""}`);
+    const status=statusTreinamento(t.validade).chave;
+    return (!termo||texto.includes(termo)) && (!filtro||status===filtro);
+  }));
+});
+
+$("tbodyTreinamentos")?.addEventListener("click",async e=>{
+  const btn=e.target.closest("button[data-action]");
+  if(!btn)return;
+  const item=state.treinamentos.find(t=>t.id===btn.dataset.id);
+  if(!item)return;
+
+  if(btn.dataset.action==="edit-treinamento"){
+    if(!isGestor())return;
+    state.treinamentoEditId=item.id;
+    $("treinamentoNome").value=item.nome||"";
+    $("treinamentoTitulo").value=item.titulo||"";
+    $("treinamentoData").value=item.data||"";
+    $("treinamentoValidade").value=item.validade||"";
+    $("btnSalvarTreinamento").textContent="Salvar alteração";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  if(btn.dataset.action==="delete-treinamento"){
+    if(!isSupervisor())return;
+    if(confirm("Excluir este treinamento?")){
+      await deleteDoc(doc(db,"treinamentos",item.id));
+      if(state.treinamentoEditId===item.id)clearTrainingForm();
+    }
+  }
+});
+
+function mostrarStatusImportacaoTreinamentos(tipo,mensagem){
+  const box=$("statusImportacaoTreinamentos");
+  if(!box)return;
+  box.className=`status-importacao-banco ${tipo}`;
+  box.innerHTML=mensagem;
+}
+
+$("arquivoTreinamentos")?.addEventListener("change",e=>{
+  if(!isGestor()){
+    e.target.value="";
+    alert("Somente Supervisor e Especialista podem importar treinamentos.");
+    return;
+  }
+  const file=e.target.files?.[0];
+  if(!file)return;
+  mostrarStatusImportacaoTreinamentos("processando","Lendo e validando a planilha...");
+
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      let wb;
+      if(file.name.toLowerCase().endsWith(".csv")){
+        const texto=new TextDecoder("utf-8").decode(ev.target.result);
+        wb=XLSX.read(texto,{type:"string",cellDates:true});
+      }else{
+        wb=XLSX.read(ev.target.result,{type:"array",cellDates:true});
+      }
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+      let importados=0,ignorados=0;
+      const inconsistencias=[];
+
+      for(const row of rows){
+        const nome=String(valorLinha(row,["Colaborador","COLABORADOR","Nome","NOME","Funcionário","Funcionario"])||"").trim();
+        const titulo=String(valorLinha(row,["Treinamento","TREINAMENTO","Curso","CURSO","Certificação","Certificacao"])||"").trim();
+        const data=dataExcelParaIso(valorLinha(row,["Data de realização","Data Realização","Realização","Realizacao","Data"]));
+        const validade=dataExcelParaIso(valorLinha(row,["Validade","Vencimento","Data de validade","Data Vencimento"]));
+
+        if(!nome||!titulo||!data){
+          ignorados++;
+          inconsistencias.push(nome||"(sem nome)");
+          continue;
+        }
+
+        const colaborador=state.colaboradores.find(c=>
+          c.ativo!==false && normalizarNome(c.nome)===normalizarNome(nome)
+        );
+        if(!colaborador){
+          ignorados++;
+          inconsistencias.push(nome);
+          continue;
+        }
+
+        await addDoc(collection(db,"treinamentos"),{
+          colaboradorId:colaborador.id,
+          nome:colaborador.nome,
+          titulo,
+          data,
+          validade,
+          equipe:"E",
+          origemArquivo:file.name,
+          criadoPor:state.user.uid,
+          criadoEm:serverTimestamp(),
+          alteradoPor:state.user.uid,
+          alteradoEm:serverTimestamp()
+        });
+        importados++;
+      }
+
+      mostrarStatusImportacaoTreinamentos("sucesso",
+        `Importação concluída. Importados: <b>${importados}</b> • Ignorados: <b>${ignorados}</b>`+
+        (inconsistencias.length?`<br><span style="font-weight:500">Verificar: ${inconsistencias.slice(0,8).join(", ")}${inconsistencias.length>8?"...":""}</span>`:"")
+      );
+      e.target.value="";
+    }catch(err){
+      console.error(err);
+      mostrarStatusImportacaoTreinamentos("erro","Falha ao importar: "+err.message);
+      e.target.value="";
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
 
 function dataExcelParaIso(valor){
   if(!valor)return "";
@@ -2090,7 +2285,7 @@ $("btnEnviarFolga").addEventListener("click",async()=>{
     alert(
       `Solicitação bloqueada.\n\nSaldo disponível: ${saldoFormatado(saldoAtual/60)}\n`+
       `Saldo após descontar 07:00: ${saldoFormatado(saldoProjetado/60)}\n\n`+
-      "O saldo não pode ficar abaixo de -07:00."
+      "O saldo não pode ficar abaixo de -20:00."
     );
     return;
   }
@@ -2221,7 +2416,7 @@ $("tbodyFerias").addEventListener("click",async e=>{
 });
 
 $("btnSalvarColaborador").addEventListener("click",async()=>{
-  if(!isSupervisor())return;
+  if(!isGestor())return;
 
   const nome=$("colaboradorNome").value.trim().toUpperCase();
   if(!nome){
@@ -2269,6 +2464,7 @@ $("tbodyColaboradores").addEventListener("click",async e=>{
   const colaborador=state.colaboradores.find(c=>c.id===id);
 
   if(btn.dataset.action==="edit-colaborador"&&colaborador){
+    if(!isGestor())return;
     state.colaboradorEditId=id;
     $("colaboradorNome").value=colaborador.nome||"";
     $("colaboradorMatricula").value=colaborador.matricula||"";
@@ -2285,6 +2481,7 @@ $("tbodyColaboradores").addEventListener("click",async e=>{
   }
 
   if(btn.dataset.action==="delete-colaborador"){
+    if(!isSupervisor())return;
     if(confirm("Excluir colaborador?")){
       await deleteDoc(doc(db,"colaboradores",id));
       if(state.colaboradorEditId===id)clearCollaboratorForm();
